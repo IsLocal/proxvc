@@ -2,9 +2,9 @@ package fiveavian.proxvc.mixin.client;
 
 import fiveavian.proxvc.api.ClientEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.net.handler.NetClientHandler;
-import net.minecraft.core.net.packet.Packet1Login;
-import net.minecraft.core.net.packet.Packet255KickDisconnect;
+import net.minecraft.client.net.handler.PacketHandlerClient;
+import net.minecraft.core.net.packet.PacketLogin;
+import net.minecraft.core.net.packet.PacketDisconnect;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-@Mixin(value = NetClientHandler.class, remap = false)
+@Mixin(value = PacketHandlerClient.class, remap = false)
 public class NetClientHandlerMixin {
     @Shadow
     @Final
@@ -24,14 +24,14 @@ public class NetClientHandlerMixin {
     private boolean disconnected;
 
     @Inject(method = "handleLogin", at = @At("TAIL"))
-    public void handleLogin(Packet1Login packet, CallbackInfo ci) {
-        for (BiConsumer<Minecraft, Packet1Login> listener : ClientEvents.LOGIN) {
+    public void handleLogin(PacketLogin packet, CallbackInfo ci) {
+        for (BiConsumer<Minecraft, PacketLogin> listener : ClientEvents.LOGIN) {
             listener.accept(mc, packet);
         }
     }
 
     @Inject(method = "handleKickDisconnect", at = @At("HEAD"))
-    public void handleKickDisconnect(Packet255KickDisconnect packet, CallbackInfo ci) {
+    public void handleKickDisconnect(PacketDisconnect packet, CallbackInfo ci) {
         for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT) {
             listener.accept(mc);
         }

@@ -2,12 +2,20 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven {
-            name = "Fabric"
-            url = "https://maven.fabricmc.net/"
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
         }
         maven {
-            name = "Babric"
-            url = "https://maven.glass-launcher.net/babric"
+            name = 'Jitpack'
+            url = 'https://jitpack.io'
+        }
+        maven {
+            name = 'Babric'
+            url = 'https://maven.glass-launcher.net/babric'
+        }
+        maven {
+            name = 'SignalumMavenInfrastructure'
+            url = 'https://maven.thesignalumproject.net/infrastructure'
         }
     }
 }

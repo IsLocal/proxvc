@@ -5,27 +5,34 @@ import org.lwjgl.openal.*;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 public class AudioInputDevice implements AutoCloseable {
     private static final int NUM_DEVICE_BUFFERS = 8;
 
     private final ByteBuffer samples = BufferUtils.createByteBuffer(VCProtocol.BUFFER_SIZE);
     private final IntBuffer ints = BufferUtils.createIntBuffer(1);
-    private ALCdevice device = null;
+    private Long device = null;
 
     public static String[] getSpecifiers() {
-        String result = null;
+        List<String> result = null;
         try {
-            result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
-        } catch (OpenALException ex) {
+            result = ALUtil.getStringList(0, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
+
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return result == null ? new String[0] : result.split("\0");
+        System.out.println("Raw device specifiers: " + (result == null ? "dunno" : result)); // Debugging output
+
+        return result == null ? new String[0] : result.toArray(new String[0]);
     }
 
     public synchronized void open(String deviceName) {
         close();
-        if (deviceName == null) {
+        System.out.println("Opening audio input device: " + deviceName); // Debugging output
+
+
+        if (deviceName == null || deviceName.isEmpty()) {
             device = null;
         } else {
             device = ALC11.alcCaptureOpenDevice(
@@ -35,6 +42,7 @@ public class AudioInputDevice implements AutoCloseable {
                     VCProtocol.SAMPLE_COUNT * NUM_DEVICE_BUFFERS
             );
             ALC11.alcCaptureStart(device);
+            System.out.println("Opened audio input device: " + deviceName); // Debugging output
         }
     }
 
@@ -47,7 +55,7 @@ public class AudioInputDevice implements AutoCloseable {
             return null;
         }
         ints.rewind();
-        ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES, ints);
+        ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES);
         if (ints.get(0) < VCProtocol.SAMPLE_COUNT) {
             return null;
         }
@@ -58,6 +66,9 @@ public class AudioInputDevice implements AutoCloseable {
 
     @Override
     public synchronized void close() {
+        if (device == null) {
+            return;
+        }
         if (isClosed())
             return;
         ALC11.alcCaptureStop(device);

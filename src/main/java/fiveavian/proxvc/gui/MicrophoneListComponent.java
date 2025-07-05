@@ -3,8 +3,8 @@ package fiveavian.proxvc.gui;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.options.components.OptionsComponent;
-import net.minecraft.client.option.StringOption;
-import net.minecraft.client.render.FontRenderer;
+import net.minecraft.client.option.OptionString;
+import net.minecraft.client.render.Font;
 import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.core.lang.I18n;
 import org.lwjgl.opengl.GL11;
@@ -17,12 +17,12 @@ public class MicrophoneListComponent implements OptionsComponent {
     private static final int BUTTON_HEIGHT_WITH_MARGIN = BUTTON_HEIGHT + MARGIN;
 
     private final AudioInputDevice device;
-    private final StringOption specifierOption;
+    private final OptionString specifierOption;
     private Minecraft mc;
     private String[] specifiers;
     private int updateTickCount = 0;
 
-    public MicrophoneListComponent(AudioInputDevice device, StringOption specifierOption) {
+    public MicrophoneListComponent(AudioInputDevice device, OptionString specifierOption) {
         this.device = device;
         this.specifierOption = specifierOption;
     }
@@ -71,7 +71,7 @@ public class MicrophoneListComponent implements OptionsComponent {
     @Override
     public void render(int x, int y, int width, int relativeMouseX, int relativeMouseY) {
         Tessellator tessellator = Tessellator.instance;
-        FontRenderer fontRenderer = mc.fontRenderer;
+        Font fontRenderer = mc.font;
         I18n i18n = I18n.getInstance();
         if (specifiers.length == 0) {
             fontRenderer.drawCenteredString(i18n.translateKey("gui.options.page.proxvc.label.no_devices"), x + width / 2, y + 4, 0x5F7F7F7F);

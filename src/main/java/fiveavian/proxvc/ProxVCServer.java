@@ -29,6 +29,7 @@ public class ProxVCServer implements DedicatedServerModInitializer {
             int port = server.propertyManager.getIntProperty("server-port", 25565);
             socket = new DatagramSocket(port, ip.isEmpty() ? null : InetAddress.getByName(ip));
             relayThread = new Thread(new VCRelayServer(this));
+            System.out.println("Starting ProxVC server on " + socket.getLocalSocketAddress());
             relayThread.start();
         } catch (SocketException | UnknownHostException ex) {
             System.out.println("Failed to start the ProxVC server because of an exception.");
