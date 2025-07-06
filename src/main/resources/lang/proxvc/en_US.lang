@@ -6,6 +6,7 @@ gui.options.page.proxvc.label.no_devices=No microphones found :(
 
 key.mute=Mute Microphone
 key.push_to_talk=Push-to-Talk
+key.volume_mixer=Open Volume Mixer
 
 options.sound.voice_chat=Voice Chat Volume
 options.is_muted=Is Muted

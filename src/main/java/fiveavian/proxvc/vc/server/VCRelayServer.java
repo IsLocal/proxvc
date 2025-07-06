@@ -59,7 +59,7 @@ public class VCRelayServer implements Runnable {
         connections.put(packet.packet.getSocketAddress(), player);
         connections.entrySet().removeIf(this::isConnectionOffline);
         for (SocketAddress key : connections.keySet()) {
-           // System.out.println("Sharing samples from " + player.username + " to " + connections.get(key).username); // Debugging output
+            // System.out.println("Sharing samples from " + player.username + " to " + connections.get(key).username); // Debugging output
             shareSamples(address, player, key, connections.get(key));
         }
     }

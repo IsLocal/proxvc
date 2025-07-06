@@ -10,12 +10,25 @@ import java.nio.IntBuffer;
 public class StreamingAudioSource implements AutoCloseable {
     private static final int NUM_BUFFERS = 8;
 
-    public final int source = AL10.alGenSources();
+    public final int source ;
     private final IntBuffer buffers = BufferUtils.createIntBuffer(NUM_BUFFERS);
     private int bufferIndex = 0;
     private int numBuffersAvailable = NUM_BUFFERS;
+    public final int entityId;
+    public final String playerName;
+    public float volume = 1.0f;
+    public long lastHeard = System.currentTimeMillis();
 
-    public StreamingAudioSource() {
+    public StreamingAudioSource(int entityId, String playerName) {
+        this.entityId = entityId;
+        this.playerName = playerName;
+
+        try {
+            source = AL10.alGenSources();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate OpenAL source. Is OpenAL initialized? Check if your volume is set to 0!", e);
+        }
+
         AL10.alGenBuffers(buffers);
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);
@@ -23,6 +36,7 @@ public class StreamingAudioSource implements AutoCloseable {
     }
 
     public boolean queueSamples(ByteBuffer samples) {
+        lastHeard = System.currentTimeMillis();
         int numBuffersToUnqueue = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
         numBuffersAvailable += numBuffersToUnqueue;
         for (int i = 0; i < numBuffersToUnqueue; i++) {
