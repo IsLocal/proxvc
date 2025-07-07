@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * when starting the game with no volume.
  */
 @Mixin(value = SoundEngine.class, remap = false)
-public class SoundEngineMixer {
+public class SoundEngineMixin {
     @Redirect(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sound/SoundCategoryHelper;isAnyEnabled(Lnet/minecraft/client/option/GameSettings;)Z"))
     public boolean isAnyEnabled(GameSettings category) {
         return true;
