@@ -98,7 +98,7 @@ public class MicrophoneListComponent implements OptionsComponent {
                 tessellator.draw();
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
             }
-            fontRenderer.drawString(specifier.replace("OpenAL Soft on", ""), x + 1, y + 4, 0xFFFFFF);
+            fontRenderer.drawString(specifier.replaceFirst("OpenAL Soft on\\s+(?!($|\\s+$))", ""), x + 1, y + 4, 0xFFFFFF);
             y += BUTTON_HEIGHT_WITH_MARGIN;
         }
     }
@@ -122,16 +122,13 @@ public class MicrophoneListComponent implements OptionsComponent {
     }
 
     @Override
-    public void onMouseMove(int x, int y, int width, int relativeMouseX, int relativeMouseY) {
-    }
+    public void onMouseMove(int x, int y, int width, int relativeMouseX, int relativeMouseY) {}
 
     @Override
-    public void onMouseRelease(int mouseButton, int x, int y, int width, int relativeMouseX, int relativeMouseY) {
-    }
+    public void onMouseRelease(int mouseButton, int x, int y, int width, int relativeMouseX, int relativeMouseY) {}
 
     @Override
-    public void onKeyPress(int keyCode, char character) {
-    }
+    public void onKeyPress(int keyCode, char character) {}
 
     @Override
     public boolean matchesSearchTerm(String string) {

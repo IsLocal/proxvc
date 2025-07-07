@@ -1,8 +1,8 @@
 accessWidener v2 named
 
-accessible field net/minecraft/server/net/handler/NetServerHandler mcServer Lnet/minecraft/server/MinecraftServer;
-accessible field net/minecraft/server/net/handler/NetServerHandler playerEntity Lnet/minecraft/server/entity/player/EntityPlayerMP;
-accessible field net/minecraft/server/entity/EntityTracker trackedEntityHashTable Lnet/minecraft/core/world/pathfinder/IdHashMap;
-accessible field net/minecraft/client/net/handler/NetClientHandler netManager Lnet/minecraft/core/net/NetworkManager;
-accessible field net/minecraft/core/net/NetworkManager networkSocket Ljava/net/Socket;
+accessible field net/minecraft/server/net/handler/PacketHandlerServer mcServer Lnet/minecraft/server/MinecraftServer;
+accessible field net/minecraft/server/net/handler/PacketHandlerServer playerEntity Lnet/minecraft/server/entity/player/PlayerServer;
+accessible field net/minecraft/server/entity/EntityTrackerImpl trackedEntityHashTable Lnet/minecraft/core/util/collection/IntHashMap;
+accessible field net/minecraft/client/net/handler/PacketHandlerClient netManager Lnet/minecraft/core/net/NetworkManager;
+accessible field net/minecraft/core/net/NetworkManager socket Ljava/net/Socket;
 accessible field net/minecraft/client/Minecraft mcDataDir Ljava/io/File;

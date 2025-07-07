@@ -5,9 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "client": [
     "client.MinecraftMixin",
-    "client.NetClientHandlerMixin",
+    "client.PacketHandlerClientMixin",
     "client.WorldRendererMixin",
-    "client.SoundEngineMixer"
+    "client.SoundEngineMixin"
   ],
   "server": [
     "server.MinecraftServerMixin"

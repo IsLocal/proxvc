@@ -24,6 +24,7 @@ version = project.mod_version
 
 loom {
 	noIntermediateMappings()
+	accessWidenerPath = file("src/main/resources/proxvc.accesswidener")
 	customMinecraftMetadata.set("https://downloads.betterthanadventure.net/bta-client/${project.bta_channel}/v${project.bta_version}/manifest.json")
 }
 
@@ -47,6 +48,7 @@ repositories {
 		url = 'https://maven.thesignalumproject.net/releases'
 	}
 	ivy {
+		name = "BTA Repo"
 		url = "https://github.com/Better-than-Adventure"
 		patternLayout {
 			artifact "[organisation]/releases/download/v[revision]/[module].jar"
@@ -55,6 +57,7 @@ repositories {
 		metadataSources { artifact() }
 	}
 	ivy {
+		name = "BTA-client"
 		url = "https://downloads.betterthanadventure.net/bta-client/${project.bta_channel}/"
 		patternLayout {
 			artifact "/v[revision]/client.jar"
@@ -63,6 +66,7 @@ repositories {
 		metadataSources { artifact() }
 	}
 	ivy {
+		name = "BTA-server"
 		url = "https://downloads.betterthanadventure.net/bta-server/${project.bta_channel}/"
 		patternLayout {
 			artifact "/v[revision]/server.jar"
@@ -71,6 +75,7 @@ repositories {
 		metadataSources { artifact() }
 	}
 	ivy {
+		name = "Minecraft"
 		url = "https://piston-data.mojang.com"
 		patternLayout {
 			artifact "v1/[organisation]/[revision]/[module].jar"
@@ -145,9 +150,9 @@ configurations.configureEach {
 }
 
 processResources {
-	inputs.property "version", version
-
+	inputs.property "mod_version", project.mod_version
 	filesMatching("fabric.mod.json") {
-		expand "version": version
+		expand "mod_version": project.mod_version
 	}
 }
+

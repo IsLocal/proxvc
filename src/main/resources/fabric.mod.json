@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "proxvc",
-  "version": "1.5.3",
+  "version": "${mod_version}",
   "name": "ProxVC",
   "description": "A primitive voice chat mod for Better Than Adventure!",
   "authors": [
