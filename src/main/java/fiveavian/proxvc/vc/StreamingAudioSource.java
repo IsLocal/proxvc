@@ -44,11 +44,8 @@ public class StreamingAudioSource implements AutoCloseable {
         }
 
         // Experimental effects - may not work on all systems
-
         setupLowpass();
         setupReverb();
-
-
         AL10.alGenBuffers(buffers);
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);
@@ -125,10 +122,6 @@ public class StreamingAudioSource implements AutoCloseable {
         //block != null && block.getMaterial().isSolid()
         setLowpassIntensity(((5f - (float) thickness) * 0.02f), client.timer.partialTicks);
 
-        //new implementation idea:
-        // 1. raycast to player, count number of solid blocks in the way
-        // 2. set lowpass gain hf based on that number (e.g. 0.0f for 3 or more blocks, 0.5f for 2 blocks, 0.75f for 1 block, 1.0f for 0 blocks)
-
     }
 
     public void calculateRoomDescription(Minecraft client, Player entity) {
@@ -138,26 +131,25 @@ public class StreamingAudioSource implements AutoCloseable {
         float totalDistance = 0f;
         int numRays = 0;
         Vec3[] directions = {
-                Vec3.getPermanentVec3(1, 0, 0),    // Right
-                Vec3.getPermanentVec3(-1, 0, 0),   // Left
-                Vec3.getPermanentVec3(0, 1, 0),    // Up
-                Vec3.getPermanentVec3(0, -1, 0),   // Down
-                Vec3.getPermanentVec3(0, 0, 1),    // Forward
-                Vec3.getPermanentVec3(0, 0, -1),   // Backward
-                Vec3.getPermanentVec3(1, 1, 0),    // Up-Right
-                Vec3.getPermanentVec3(1, -1, 0),   // Down-Right
-                Vec3.getPermanentVec3(-1, 1, 0),   // Up-Left
-                Vec3.getPermanentVec3(-1, -1, 0),  // Down-Left
-                Vec3.getPermanentVec3(1, 0, 1),    // Right-Forward
-                Vec3.getPermanentVec3(1, 0, -1),   // Right-Backward
-                Vec3.getPermanentVec3(-1, 0, 1),   // Left-Forward
-                Vec3.getPermanentVec3(-1, 0, -1),  // Left-Backward
-                Vec3.getPermanentVec3(0, 1, 1),    // Up-Forward
-                Vec3.getPermanentVec3(0, 1, -1),   // Up-Backward
-                Vec3.getPermanentVec3(0, -1, 1),   // Down-Forward
-                Vec3.getPermanentVec3(0, -1, -1)   // Down-Backward
+                Vec3.getPermanentVec3(1, 0, 0),
+                Vec3.getPermanentVec3(-1, 0, 0),
+                Vec3.getPermanentVec3(0, 1, 0),
+                Vec3.getPermanentVec3(0, -1, 0),
+                Vec3.getPermanentVec3(0, 0, 1),
+                Vec3.getPermanentVec3(0, 0, -1),
+                Vec3.getPermanentVec3(1, 1, 0),
+                Vec3.getPermanentVec3(1, -1, 0),
+                Vec3.getPermanentVec3(-1, 1, 0),
+                Vec3.getPermanentVec3(-1, -1, 0),
+                Vec3.getPermanentVec3(1, 0, 1),
+                Vec3.getPermanentVec3(1, 0, -1),
+                Vec3.getPermanentVec3(-1, 0, 1),
+                Vec3.getPermanentVec3(-1, 0, -1),
+                Vec3.getPermanentVec3(0, 1, 1),
+                Vec3.getPermanentVec3(0, 1, -1),
+                Vec3.getPermanentVec3(0, -1, 1),
+                Vec3.getPermanentVec3(0, -1, -1)
         };
-
 
         for (Vec3 dir : directions) {
             HitResult hit = client.currentWorld.checkBlockCollisionBetweenPoints(
@@ -195,9 +187,6 @@ public class StreamingAudioSource implements AutoCloseable {
             reverbEnabled = true;
             AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, this.reverbEffect, 0, EXTEfx.AL_FILTER_NULL);
         }
-        //slot
-
-
     }
 
     public void setReverbEnabled(boolean enable) {
