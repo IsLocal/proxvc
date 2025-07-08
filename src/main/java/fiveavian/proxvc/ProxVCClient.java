@@ -213,6 +213,9 @@ public class ProxVCClient implements ClientModInitializer {
                 continue;
             }
 
+           source.calculateMuffleIntensity(client, entity);
+           //source.calculateRoomDescription(client, entity);
+
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);
@@ -223,11 +226,11 @@ public class ProxVCClient implements ClientModInitializer {
             AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value * source.volume);
         }
         // I'm honestly not sure if this cleanup is needed.
-        for (StreamingAudioSource source : Copy.values()) {
-            source.close();
-            sources.remove(source.entityId);
-            System.out.println("Closed audio source for entity " + source.entityId + " because they are no longer in the world.");
-        }
+//        for (StreamingAudioSource source : Copy.values()) {
+//            source.close();
+//            sources.remove(source.entityId);
+//            System.out.println("Closed audio source for entity " + source.entityId + " because they are no longer in the world.");
+//        }
     }
 
     private void render(Minecraft client, WorldRenderer renderer) {
@@ -259,6 +262,7 @@ public class ProxVCClient implements ClientModInitializer {
             saved = false;
             Socket socket = (Socket) client.getSendQueue().netManager.socket;
             serverAddress = socket.getRemoteSocketAddress();
+            System.out.println("Logged in and setting the server to " + serverAddress.toString());
         } catch (Exception ex) {
             System.out.println("Failed to get server address during login.");
             ex.printStackTrace();
