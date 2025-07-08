@@ -53,7 +53,6 @@ public class VCInputClient implements Runnable {
     }
 
     private void sendNextPacket() throws Exception {
-
         if (sources.isEmpty()) {
             return;
         }
@@ -66,8 +65,7 @@ public class VCInputClient implements Runnable {
         }
         packet.buffer.rewind();
         packet.buffer.putInt(client.thePlayer.id);
-        if (vcClient.isMuted.value || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed()) || samples == null) {
-            //System.out.println("Sending noop packet.");
+        if (vcClient.isMuted.value || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed())) {
             ticksUntilNoopPacket -= 1;
             if (ticksUntilNoopPacket > 0) {
                 return;

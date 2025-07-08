@@ -82,13 +82,10 @@ public class ProxVCClient implements ClientModInitializer {
         isMuted = new OptionBoolean(client.gameSettings, "is_muted", false);
         usePushToTalk = new OptionBoolean(client.gameSettings, "use_push_to_talk", false);
         selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", null);
-
         options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
-
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
-
         try {
             socket = new DatagramSocket();
             device = new AudioInputDevice();
@@ -123,7 +120,6 @@ public class ProxVCClient implements ClientModInitializer {
     private void stop(Minecraft client) {
         if (optionFilePath != null)
             OptionStore.saveOptions(optionFilePath, options, keyBindings);
-
         try {
             if (socket != null) {
                 socket.close();
@@ -137,7 +133,6 @@ public class ProxVCClient implements ClientModInitializer {
             if (device != null) {
                 device.close();
             }
-
         } catch (InterruptedException ex) {
             System.out.println("Failed to stop the ProxVC client because of an exception.");
             ex.printStackTrace();
@@ -145,9 +140,8 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void tick(Minecraft client) {
-        if (isDisconnected()) {
+        if (isDisconnected())
             return;
-        }
 
         Set<Integer> toRemove = new HashSet<>(sources.keySet());
         Set<Integer> toAdd = new HashSet<>();
@@ -162,15 +156,7 @@ public class ProxVCClient implements ClientModInitializer {
         }
         for (int entityId : toAdd) {
             if (!sources.containsKey(entityId)) {
-                String playerName = null;
-
-                for (Player entity : client.currentWorld.players) {
-                    if (entity.id == entityId) {
-                        playerName = entity.username;
-                        break;
-                    }
-                }
-                sources.put(entityId, new StreamingAudioSource(entityId, playerName));
+                sources.put(entityId, new StreamingAudioSource());
             }
         }
 
@@ -182,18 +168,14 @@ public class ProxVCClient implements ClientModInitializer {
                 }
             } else {
                 isMutePressed = false;
-
             }
         }
 
-        Map<Integer, StreamingAudioSource> Copy = new HashMap<>(sources);
         for (Player entity : client.currentWorld.players) {
             StreamingAudioSource source = sources.get(entity.id);
-            Copy.remove(entity.id);
             if (source == null) {
                 continue;
             }
-
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);
@@ -201,13 +183,7 @@ public class ProxVCClient implements ClientModInitializer {
             AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.x, (float) look.y, (float) look.z);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
-            AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value * source.volume);
-        }
-        // I'm honestly not sure if this cleanup is needed.
-        for (StreamingAudioSource source : Copy.values()) {
-            source.close();
-            sources.remove(source.entityId);
-            System.out.println("Closed audio source for entity " + source.entityId + " because they are no longer in the world.");
+            AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value);
         }
     }
 

@@ -22,32 +22,29 @@ public class AudioInputDevice implements AutoCloseable {
         List<String> result = null;
         try {
             result = ALUtil.getStringList(0, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        System.out.println("Raw device specifiers: " + (result == null ? "dunno" : result)); // Debugging output
-
         return result == null ? new String[0] : result.toArray(new String[0]);
     }
 
     public synchronized void open(String deviceName) {
-
         close();
-        System.out.println("Opening audio input device: " + deviceName); // Debugging output
-
         if (deviceName == null || deviceName.isEmpty()) {
             device = null;
         } else {
-
             try {
-                device = ALC11.alcCaptureOpenDevice(deviceName, VCProtocol.SAMPLE_RATE, AL10.AL_FORMAT_MONO16, VCProtocol.SAMPLE_COUNT * NUM_DEVICE_BUFFERS);
+                device = ALC11.alcCaptureOpenDevice(
+                        deviceName,
+                        VCProtocol.SAMPLE_RATE,
+                        AL10.AL_FORMAT_MONO16,
+                        VCProtocol.SAMPLE_COUNT * NUM_DEVICE_BUFFERS
+                );
                 ALC11.alcCaptureStart(device);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 device = null;
             }
-            System.out.println("Opened audio input device: " + deviceName); // Debugging output
         }
     }
 
@@ -60,16 +57,12 @@ public class AudioInputDevice implements AutoCloseable {
             return null;
         }
         ints.rewind();
-
         int is = ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES);
-
         if (is < VCProtocol.SAMPLE_COUNT) {
             return null;
         }
-
         samples.rewind();
         ALC11.alcCaptureSamples(device, samples, VCProtocol.SAMPLE_COUNT);
-
         isTalking = !isSilent(samples);
         return samples;
     }
@@ -86,7 +79,6 @@ public class AudioInputDevice implements AutoCloseable {
         if (samples.remaining() < 2) { // Assuming 16-bit samples (2 bytes)
             return true; // Not enough data to determine silence
         }
-
         for (int i = 0; i < samples.remaining(); i += 2) {
             short sample = samples.getShort(i); // Read 16-bit sample
             if (Math.abs(sample) > 1) {
@@ -98,7 +90,8 @@ public class AudioInputDevice implements AutoCloseable {
 
     @Override
     public synchronized void close() {
-        if (isClosed()) return;
+        if (isClosed())
+            return;
         ALC11.alcCaptureStop(device);
         ALC11.alcCaptureCloseDevice(device);
     }
