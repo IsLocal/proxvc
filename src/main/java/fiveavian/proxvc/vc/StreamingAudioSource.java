@@ -35,6 +35,27 @@ public class StreamingAudioSource implements AutoCloseable {
     public Integer lowpassFilter = null;
     public float lowpassIntensity = 1f;
 
+    private static final Vec3[] directions = {
+            Vec3.getPermanentVec3(1, 0, 0),
+            Vec3.getPermanentVec3(-1, 0, 0),
+            Vec3.getPermanentVec3(0, 1, 0),
+            Vec3.getPermanentVec3(0, -1, 0),
+            Vec3.getPermanentVec3(0, 0, 1),
+            Vec3.getPermanentVec3(0, 0, -1),
+            Vec3.getPermanentVec3(1, 1, 0).normalize(),
+            Vec3.getPermanentVec3(1, -1, 0).normalize(),
+            Vec3.getPermanentVec3(-1, 1, 0).normalize(),
+            Vec3.getPermanentVec3(-1, -1, 0).normalize(),
+            Vec3.getPermanentVec3(1, 0, 1).normalize(),
+            Vec3.getPermanentVec3(1, 0, -1).normalize(),
+            Vec3.getPermanentVec3(-1, 0, 1).normalize(),
+            Vec3.getPermanentVec3(-1, 0, -1).normalize(),
+            Vec3.getPermanentVec3(0, 1, 1).normalize(),
+            Vec3.getPermanentVec3(0, 1, -1).normalize(),
+            Vec3.getPermanentVec3(0, -1, 1).normalize(),
+            Vec3.getPermanentVec3(0, -1, -1).normalize()
+    };
+
     public StreamingAudioSource(int entityId, String playerName) {
         this.entityId = entityId;
         this.playerName = playerName;
@@ -133,8 +154,16 @@ public class StreamingAudioSource implements AutoCloseable {
         boolean isInRoom = averageDistance < 10f && numRays > 0 && escapedRays < numRays / 2;
         boolean isInRoomFromEars = averageDistanceFromEars < 10f && numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
 
-        System.out.println("Calculated room description in " + (System.currentTimeMillis() - before) + "ms");
-        if (!isInRoom || !isInRoomFromEars) {
+        System.out.println("Room description from source: " + averageDistance
+                + ", numRays: " + numRays
+                + ", escapedRays: " + escapedRays
+                + ", isInRoom: " + isInRoom);
+
+        System.out.println("Room description from ears: " + averageDistanceFromEars
+                + ", numRays: " + numRaysFromEars
+                + ", escapedRays: " + escapedRaysFromEars
+                + ", isInRoom: " + isInRoomFromEars);
+        if (!isInRoom && !isInRoomFromEars) {
             setLowpassIntensity(0.5f, client.timer.partialTicks);
             return;
         }
@@ -150,31 +179,12 @@ public class StreamingAudioSource implements AutoCloseable {
 
     public Object[] calculateRoomDescription(Minecraft client, Player entity) {
         //measure the size of the room the player is in by raycasting in 6 directions and measuring distance to nearest solid block
-        Vec3 pos = entity.getPosition(0, true);
+        Vec3 pos = entity.getPosition(client.timer.partialTicks, true);
         float maxDistance = 20f;
         float totalDistance = 0f;
         int escapedRays = 0;
         int numRays = 0;
-        Vec3[] directions = {
-                Vec3.getPermanentVec3(1, 0, 0),
-                Vec3.getPermanentVec3(-1, 0, 0),
-                Vec3.getPermanentVec3(0, 1, 0),
-                Vec3.getPermanentVec3(0, -1, 0),
-                Vec3.getPermanentVec3(0, 0, 1),
-                Vec3.getPermanentVec3(0, 0, -1),
-                Vec3.getPermanentVec3(1, 1, 0),
-                Vec3.getPermanentVec3(1, -1, 0),
-                Vec3.getPermanentVec3(-1, 1, 0),
-                Vec3.getPermanentVec3(-1, -1, 0),
-                Vec3.getPermanentVec3(1, 0, 1),
-                Vec3.getPermanentVec3(1, 0, -1),
-                Vec3.getPermanentVec3(-1, 0, 1),
-                Vec3.getPermanentVec3(-1, 0, -1),
-                Vec3.getPermanentVec3(0, 1, 1),
-                Vec3.getPermanentVec3(0, 1, -1),
-                Vec3.getPermanentVec3(0, -1, 1),
-                Vec3.getPermanentVec3(0, -1, -1)
-        };
+
 
         for (Vec3 dir : directions) {
             HitResult hit = client.currentWorld.checkBlockCollisionBetweenPoints(
