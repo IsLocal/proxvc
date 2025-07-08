@@ -11,8 +11,10 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.EXTEfx;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 public class StreamingAudioSource implements AutoCloseable {
     private static final int NUM_BUFFERS = 8;
@@ -44,6 +46,10 @@ public class StreamingAudioSource implements AutoCloseable {
         }
 
         // Experimental effects - may not work on all systems
+//        if (!AL10.alIsExtensionPresent("AL_EXT_EFX")) {
+//            System.out.println("OpenAL EFX extension not supported, lowpass and reverb effects will not be available.");
+//            return;
+//        }
         setupLowpass();
         setupReverb();
         AL10.alGenBuffers(buffers);
@@ -79,7 +85,7 @@ public class StreamingAudioSource implements AutoCloseable {
         lowpassIntensity = MathHelper.clamp(lowpassIntensity, 0f, 1f);
 
         EXTEfx.alFilterf(lowpassFilter, EXTEfx.AL_LOWPASS_GAINHF, lowpassIntensity); // Attenuate high frequencies
-        System.out.println("Set lowpass intensity to " + lowpassIntensity);
+        //System.out.println("Set lowpass intensity to " + lowpassIntensity);
         AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, lowpassFilter);
 
     }
@@ -98,6 +104,7 @@ public class StreamingAudioSource implements AutoCloseable {
         reverbEffect = effect;
         reverbEnabled = true;
 
+
         AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbEffect, 0, EXTEfx.AL_DIRECT_FILTER);
     }
 
@@ -113,7 +120,24 @@ public class StreamingAudioSource implements AutoCloseable {
                 client.thePlayer.getPosition(0, true),
                 false);
 
+        Object[] roomDescription = calculateRoomDescription(client, entity);
+        float averageDistance = (float) roomDescription[0];
+        int numRays = (int) roomDescription[1];
+        int escapedRays = (int) roomDescription[2];
+        float before = System.currentTimeMillis();
+        Object[] roomDescriptionFromEars = calculateRoomDescription(client, client.thePlayer);
+        float averageDistanceFromEars = (float) roomDescriptionFromEars[0];
+        int numRaysFromEars = (int) roomDescriptionFromEars[1];
+        int escapedRaysFromEars = (int) roomDescriptionFromEars[2];
 
+        boolean isInRoom = averageDistance < 10f && numRays > 0 && escapedRays < numRays / 2;
+        boolean isInRoomFromEars = averageDistanceFromEars < 10f && numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
+
+        System.out.println("Calculated room description in " + (System.currentTimeMillis() - before) + "ms");
+        if (!isInRoom || !isInRoomFromEars) {
+            setLowpassIntensity(0.5f, client.timer.partialTicks);
+            return;
+        }
         if (hitFromEars == null || hitFromSource == null || hitFromEars.hitType != HitResult.HitType.TILE || hitFromSource.hitType != HitResult.HitType.TILE) {
             setLowpassIntensity(0.5f, client.timer.partialTicks);
             return;
@@ -124,11 +148,12 @@ public class StreamingAudioSource implements AutoCloseable {
 
     }
 
-    public void calculateRoomDescription(Minecraft client, Player entity) {
+    public Object[] calculateRoomDescription(Minecraft client, Player entity) {
         //measure the size of the room the player is in by raycasting in 6 directions and measuring distance to nearest solid block
         Vec3 pos = entity.getPosition(0, true);
         float maxDistance = 20f;
         float totalDistance = 0f;
+        int escapedRays = 0;
         int numRays = 0;
         Vec3[] directions = {
                 Vec3.getPermanentVec3(1, 0, 0),
@@ -156,37 +181,30 @@ public class StreamingAudioSource implements AutoCloseable {
                     pos,
                     pos.add(dir.x * maxDistance, dir.y * maxDistance, dir.z * maxDistance),
                     false);
+            Block<?> block = null;
             if (hit != null && hit.hitType == HitResult.HitType.TILE) {
-                Block<?> block = client.currentWorld.getBlock(hit.x, hit.y, hit.z);
-                if (block == null || !block.getMaterial().isSolid()) {
-                    totalDistance += maxDistance;
-                    numRays++;
-                    continue;
-                }
-                double distance = pos.distanceTo(hit.location);
-                totalDistance += (float) Math.min(distance, maxDistance);
+                block = client.currentWorld.getBlock(hit.x, hit.y, hit.z);
+            }
+            if (block != null && block.getMaterial().isSolid()) {
+                float distance = (float) hit.location.distanceTo(pos);
+                totalDistance += distance;
                 numRays++;
             } else {
-                totalDistance += maxDistance;
-                numRays++;
+                escapedRays++;
             }
         }
-        if (numRays == 0)
-            return;
-
-        float avgDistance = totalDistance / numRays;
-        // 0.0f at 2 blocks, 1.0 at 20 blocks
-        float reverbIntensity = (avgDistance - 2f) / 8f; // 0.0f at 2 blocks, 1.0f at 10 blocks
-        reverbIntensity = Math.max(0f, Math.min(1f, reverbIntensity));
-
-        //enable or disable reverb based on intensity
-        if (reverbIntensity == 0f && reverbEnabled) {
-            reverbEnabled = false;
-            AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, EXTEfx.AL_EFFECTSLOT_NULL, 0, EXTEfx.AL_FILTER_NULL);
-        } else if (reverbIntensity > 0f && !reverbEnabled) {
-            reverbEnabled = true;
-            AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, this.reverbEffect, 0, EXTEfx.AL_FILTER_NULL);
+        if (numRays == 0) {
+            // no solid blocks found, assume a large room
+            totalDistance = maxDistance * directions.length;
+            numRays = directions.length;
         }
+        float averageDistance = totalDistance / numRays;
+
+        return new Object[]{
+                averageDistance, // average distance to solid blocks
+                numRays, // number of rays that hit solid blocks
+                escapedRays // number of rays that did not hit solid blocks
+        };
     }
 
     public void setReverbEnabled(boolean enable) {
