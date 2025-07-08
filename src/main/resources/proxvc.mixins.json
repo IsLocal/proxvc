@@ -7,12 +7,14 @@
     "client.MinecraftMixin",
     "client.PacketHandlerClientMixin",
     "client.WorldRendererMixin",
-    "client.SoundEngineMixin"
+    "client.SoundEngineMixin",
+    "client.ALC10Mixin"
   ],
   "server": [
     "server.MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
+
   }
 }
