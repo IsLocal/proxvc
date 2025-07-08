@@ -48,7 +48,7 @@ repositories {
 		url = 'https://maven.thesignalumproject.net/releases'
 	}
 	ivy {
-		name = "BTA Repo"
+		name = "BTA"
 		url = "https://github.com/Better-than-Adventure"
 		patternLayout {
 			artifact "[organisation]/releases/download/v[revision]/[module].jar"
@@ -83,7 +83,6 @@ repositories {
 		}
 		metadataSources { artifact() }
 	}
-
 }
 
 dependencies {
@@ -155,4 +154,3 @@ processResources {
 		expand "mod_version": project.mod_version
 	}
 }
-
