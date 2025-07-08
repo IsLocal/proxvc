@@ -15,7 +15,6 @@ import java.nio.charset.*;
  */
 @Pseudo
 @Mixin(value = ALC10.class, remap = false)
-
 public class ALC10Mixin {
     @Unique
     private static final CharsetDecoder DECODER = StandardCharsets.UTF_8.newDecoder()
