@@ -141,6 +141,11 @@ public class StreamingAudioSource implements AutoCloseable {
                 client.thePlayer.getPosition(0, true),
                 false);
 
+        if (hitFromEars == null || hitFromSource == null || hitFromEars.hitType != HitResult.HitType.TILE || hitFromSource.hitType != HitResult.HitType.TILE) {
+            setLowpassIntensity(0.5f, client.timer.partialTicks);
+            return;
+        }
+
         Object[] roomDescription = calculateRoomDescription(client, entity);
         float averageDistance = (float) roomDescription[0];
         int numRays = (int) roomDescription[1];
@@ -167,10 +172,7 @@ public class StreamingAudioSource implements AutoCloseable {
             setLowpassIntensity(0.5f, client.timer.partialTicks);
             return;
         }
-        if (hitFromEars == null || hitFromSource == null || hitFromEars.hitType != HitResult.HitType.TILE || hitFromSource.hitType != HitResult.HitType.TILE) {
-            setLowpassIntensity(0.5f, client.timer.partialTicks);
-            return;
-        }
+
         double thickness = hitFromEars.location.distanceToSquared(hitFromSource.location);
         //block != null && block.getMaterial().isSolid()
         setLowpassIntensity(((5f - (float) thickness) * 0.02f), client.timer.partialTicks);
