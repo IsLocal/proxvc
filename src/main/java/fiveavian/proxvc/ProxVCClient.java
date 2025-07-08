@@ -2,8 +2,6 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.MicrophoneListComponent;
-import fiveavian.proxvc.screens.VolumeMixerScreen;
-import fiveavian.proxvc.util.MixerStore;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -47,7 +45,6 @@ public class ProxVCClient implements ClientModInitializer {
     public DatagramSocket socket;
     public AudioInputDevice device;
     public final Map<Integer, StreamingAudioSource> sources = new HashMap<>();
-    public MixerStore mixerStore = new MixerStore();
     public SocketAddress serverAddress;
     private Thread inputThread;
     private Thread outputThread;
@@ -55,8 +52,7 @@ public class ProxVCClient implements ClientModInitializer {
 
     public final KeyBinding keyMute = new KeyBinding("key.mute").setDefault(InputDevice.keyboard, Keyboard.KEY_M);
     public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").setDefault(InputDevice.keyboard, Keyboard.KEY_V);
-    public final KeyBinding keyMixer = new KeyBinding("key.volume_mixer").setDefault(InputDevice.keyboard, Keyboard.KEY_Y);
-    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk, keyMixer};
+    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public OptionFloat voiceChatVolume;
     public OptionBoolean isMuted;
     public OptionBoolean usePushToTalk;
@@ -64,7 +60,6 @@ public class ProxVCClient implements ClientModInitializer {
     public Option<?>[] options;
     public Path optionFilePath;
     private boolean isMutePressed = false;
-    private boolean saved = false;
 
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
@@ -93,7 +88,6 @@ public class ProxVCClient implements ClientModInitializer {
 
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
-        mixerStore.load();
 
         try {
             socket = new DatagramSocket();
@@ -112,8 +106,7 @@ public class ProxVCClient implements ClientModInitializer {
                     .withComponent(new MicrophoneListComponent(device, selectedInputDevice));
             OptionsCategory controlsCategory = new OptionsCategory("gui.options.page.proxvc.category.controls")
                     .withComponent(new KeyBindingComponent(keyMute))
-                    .withComponent(new KeyBindingComponent(keyPushToTalk))
-                    .withComponent(new KeyBindingComponent(keyMixer));
+                    .withComponent(new KeyBindingComponent(keyPushToTalk));
             OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Blocks.NOTEBLOCK.getDefaultStack()))
                     .withComponent(generalCategory)
                     .withComponent(devicesCategory)
@@ -153,13 +146,6 @@ public class ProxVCClient implements ClientModInitializer {
 
     private void tick(Minecraft client) {
         if (isDisconnected()) {
-            if (!saved) {
-                saved = true;
-                for (StreamingAudioSource source : sources.values()) {
-                    mixerStore.setMixerProperty(source.entityId, source.volume);
-                }
-                mixerStore.save();
-            }
             return;
         }
 
@@ -172,7 +158,6 @@ public class ProxVCClient implements ClientModInitializer {
             }
         }
         for (int entityId : toRemove) {
-            mixerStore.setMixerProperty(entityId, sources.get(entityId).volume);
             sources.remove(entityId).close();
         }
         for (int entityId : toAdd) {
@@ -186,14 +171,10 @@ public class ProxVCClient implements ClientModInitializer {
                     }
                 }
                 sources.put(entityId, new StreamingAudioSource(entityId, playerName));
-                sources.get(entityId).volume = mixerStore.getMixerProperty(entityId);
             }
         }
 
         if (client.currentScreen == null) {
-            if (keyMixer.isPressed()) {
-                client.displayScreen(new VolumeMixerScreen(sources));
-            }
             if (keyMute.isPressed()) {
                 if (!isMutePressed) {
                     isMutePressed = true;
@@ -255,14 +236,8 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void login(Minecraft client, PacketLogin packet) {
-        try {
-            saved = false;
             Socket socket = (Socket) client.getSendQueue().netManager.socket;
             serverAddress = socket.getRemoteSocketAddress();
-        } catch (Exception ex) {
-            System.out.println("Failed to get server address during login.");
-            ex.printStackTrace();
-        }
     }
 
     private void disconnect(Minecraft client) {
