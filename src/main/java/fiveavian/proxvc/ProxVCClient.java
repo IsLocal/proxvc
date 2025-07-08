@@ -22,6 +22,7 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.client.render.texture.Texture;
 import net.minecraft.core.block.Blocks;
+import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.Player;
 import net.minecraft.core.net.packet.PacketLogin;
 import net.minecraft.core.util.phys.Vec3;
@@ -145,8 +146,8 @@ public class ProxVCClient implements ClientModInitializer {
 
         Set<Integer> toRemove = new HashSet<>(sources.keySet());
         Set<Integer> toAdd = new HashSet<>();
-        for (Player entity : client.currentWorld.players) {
-            if (entity != null && entity.id != client.thePlayer.id) {
+        for (Entity entity : client.currentWorld.loadedEntityList) {
+            if (entity instanceof Player && entity.id != client.thePlayer.id) {
                 toRemove.remove(entity.id);
                 toAdd.add(entity.id);
             }
@@ -171,7 +172,7 @@ public class ProxVCClient implements ClientModInitializer {
             }
         }
 
-        for (Player entity : client.currentWorld.players) {
+        for (Entity entity : client.currentWorld.loadedEntityList) {
             StreamingAudioSource source = sources.get(entity.id);
             if (source == null) {
                 continue;
