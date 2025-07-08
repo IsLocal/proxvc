@@ -177,6 +177,8 @@ public class ProxVCClient implements ClientModInitializer {
             if (source == null) {
                 continue;
             }
+            source.calculateMuffleIntensity(client, (Player) entity);
+
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);

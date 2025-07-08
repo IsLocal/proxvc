@@ -23,8 +23,6 @@ public class StreamingAudioSource implements AutoCloseable {
     private final IntBuffer buffers = BufferUtils.createIntBuffer(NUM_BUFFERS);
     private int bufferIndex = 0;
     private int numBuffersAvailable = NUM_BUFFERS;
-    public final int entityId;
-    public final String playerName;
     public float volume = 1.0f;
     public long lastHeard = System.currentTimeMillis();
 
@@ -56,10 +54,7 @@ public class StreamingAudioSource implements AutoCloseable {
             Vec3.getPermanentVec3(0, -1, -1).normalize()
     };
 
-    public StreamingAudioSource(int entityId, String playerName) {
-        this.entityId = entityId;
-        this.playerName = playerName;
-
+    public StreamingAudioSource() {
         try {
             source = AL10.alGenSources();
         } catch (Exception e) {
