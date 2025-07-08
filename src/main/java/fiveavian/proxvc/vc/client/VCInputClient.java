@@ -55,13 +55,15 @@ public class VCInputClient implements Runnable {
     private void sendNextPacket() throws Exception {
 
         if (sources.isEmpty()) {
-          //  System.out.println("No active audio sources.");
+            return;
+        }
+        if (client.thePlayer == null) {
             return;
         }
         ByteBuffer samples = device.pollSamples();
-//        if (samples == null) {
-//            System.out.println("No audio samples available.");
-//        }
+        if (samples == null) {
+            return;
+        }
         packet.buffer.rewind();
         packet.buffer.putInt(client.thePlayer.id);
         if (vcClient.isMuted.value || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed()) || samples == null) {
@@ -76,7 +78,6 @@ public class VCInputClient implements Runnable {
             ticksUntilNoopPacket = TICKS_UNTIL_NOOP_PACKET;
         }
         samples.rewind();
-        //System.out.println("Encrypting and sending audio packet.");
         BufferAES.encrypt(AES.clientKeyChain, samples, packet.buffer);
         packet.send(vcClient.serverAddress);
     }
