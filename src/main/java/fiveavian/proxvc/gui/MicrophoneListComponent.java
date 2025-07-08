@@ -71,10 +71,10 @@ public class MicrophoneListComponent implements OptionsComponent {
     @Override
     public void render(int x, int y, int width, int relativeMouseX, int relativeMouseY) {
         Tessellator tessellator = Tessellator.instance;
-        Font fontRenderer = mc.font;
+        Font font = mc.font;
         I18n i18n = I18n.getInstance();
         if (specifiers.length == 0) {
-            fontRenderer.drawCenteredString(i18n.translateKey("gui.options.page.proxvc.label.no_devices"), x + width / 2, y + 4, 0x5F7F7F7F);
+            font.drawCenteredString(i18n.translateKey("gui.options.page.proxvc.label.no_devices"), x + width / 2, y + 4, 0x5F7F7F7F);
             return;
         }
         y += MARGIN;
@@ -98,7 +98,7 @@ public class MicrophoneListComponent implements OptionsComponent {
                 tessellator.draw();
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
             }
-            fontRenderer.drawString(specifier.replaceFirst("OpenAL Soft on\\s+(?!($|\\s+$))", ""), x + 1, y + 4, 0xFFFFFF);
+            font.drawString(specifier.replaceFirst("OpenAL Soft on\\s+(?!($|\\s+$))", ""), x + 1, y + 4, 0xFFFFFF);
             y += BUTTON_HEIGHT_WITH_MARGIN;
         }
     }
