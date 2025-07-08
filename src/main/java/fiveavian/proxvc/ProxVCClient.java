@@ -167,7 +167,7 @@ public class ProxVCClient implements ClientModInitializer {
         Set<Integer> toRemove = new HashSet<>(sources.keySet());
         Set<Integer> toAdd = new HashSet<>();
         for (Entity entity : client.currentWorld.loadedEntityList) {
-            if (entity != null && entity.id != client.thePlayer.id) {
+            if (entity instanceof Player && entity.id != client.thePlayer.id) {
                 toRemove.remove(entity.id);
                 toAdd.add(entity.id);
             }
