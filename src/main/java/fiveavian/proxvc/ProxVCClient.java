@@ -225,12 +225,6 @@ public class ProxVCClient implements ClientModInitializer {
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
             AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value * source.volume);
         }
-        // I'm honestly not sure if this cleanup is needed.
-//        for (StreamingAudioSource source : Copy.values()) {
-//            source.close();
-//            sources.remove(source.entityId);
-//            System.out.println("Closed audio source for entity " + source.entityId + " because they are no longer in the world.");
-//        }
     }
 
     private void render(Minecraft client, WorldRenderer renderer) {
