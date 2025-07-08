@@ -60,7 +60,6 @@ public class ProxVCClient implements ClientModInitializer {
     public Option<?>[] options;
     public Path optionFilePath;
     private boolean isMutePressed = false;
-    private boolean saved = false;
 
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
