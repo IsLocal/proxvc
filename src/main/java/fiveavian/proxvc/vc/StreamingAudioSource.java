@@ -16,13 +16,11 @@ public class StreamingAudioSource implements AutoCloseable {
     private int numBuffersAvailable = NUM_BUFFERS;
 
     public StreamingAudioSource() {
-
         try {
             source = AL10.alGenSources();
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate OpenAL source. Is OpenAL initialized? Check if your volume is set to 0!", e);
         }
-
         AL10.alGenBuffers(buffers);
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);

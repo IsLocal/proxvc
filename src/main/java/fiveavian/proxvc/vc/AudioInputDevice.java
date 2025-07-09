@@ -57,8 +57,8 @@ public class AudioInputDevice implements AutoCloseable {
             return null;
         }
         ints.rewind();
-        int is = ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES);
-        if (is < VCProtocol.SAMPLE_COUNT) {
+        ALC11.alcGetIntegerv(device, ALC11.ALC_CAPTURE_SAMPLES, ints);
+        if (ints.get(0) < VCProtocol.SAMPLE_COUNT) {
             return null;
         }
         samples.rewind();
@@ -74,7 +74,6 @@ public class AudioInputDevice implements AutoCloseable {
         return isTalking;
     }
 
-    // did not write this lolll
     private boolean isSilent(ByteBuffer samples) {
         if (samples.remaining() < 2) { // Assuming 16-bit samples (2 bytes)
             return true; // Not enough data to determine silence
