@@ -7,14 +7,10 @@ import net.minecraft.core.util.helper.MathHelper;
 import net.minecraft.core.util.phys.HitResult;
 import net.minecraft.core.util.phys.Vec3;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.AL11;
-import org.lwjgl.openal.EXTEfx;
+import org.lwjgl.openal.*;
 
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.List;
 
 public class StreamingAudioSource implements AutoCloseable {
     private static final int NUM_BUFFERS = 8;
@@ -23,15 +19,12 @@ public class StreamingAudioSource implements AutoCloseable {
     private final IntBuffer buffers = BufferUtils.createIntBuffer(NUM_BUFFERS);
     private int bufferIndex = 0;
     private int numBuffersAvailable = NUM_BUFFERS;
-    public float volume = 1.0f;
-    public long lastHeard = System.currentTimeMillis();
-
     public Integer reverbSlot;
     public Integer reverbEffect;
     public boolean reverbEnabled = true;
 
     public Integer lowpassFilter = null;
-    public float lowpassIntensity = 1f;
+    public float lowpassIntensity = 0.5f;
 
     private static final Vec3[] directions = {
             Vec3.getPermanentVec3(1, 0, 0),
@@ -61,11 +54,6 @@ public class StreamingAudioSource implements AutoCloseable {
             throw new RuntimeException("Failed to generate OpenAL source. Is OpenAL initialized? Check if your volume is set to 0!", e);
         }
 
-        // Experimental effects - may not work on all systems
-//        if (!AL10.alIsExtensionPresent("AL_EXT_EFX")) {
-//            System.out.println("OpenAL EFX extension not supported, lowpass and reverb effects will not be available.");
-//            return;
-//        }
         setupLowpass();
         setupReverb();
         AL10.alGenBuffers(buffers);
@@ -75,10 +63,6 @@ public class StreamingAudioSource implements AutoCloseable {
     }
 
     public void setupLowpass() {
-        if (!AL10.alIsExtensionPresent("AL_EXT_EFX")) {
-            System.out.println("OpenAL EFX extension not supported, lowpass effect will not be available.");
-            return;
-        }
         int filter = EXTEfx.alGenFilters();
         EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
 
@@ -122,7 +106,6 @@ public class StreamingAudioSource implements AutoCloseable {
         reverbEffect = effect;
         reverbEnabled = true;
 
-
         AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbEffect, 0, EXTEfx.AL_DIRECT_FILTER);
     }
 
@@ -156,15 +139,15 @@ public class StreamingAudioSource implements AutoCloseable {
         boolean isInRoom = averageDistance < 10f && numRays > 0 && escapedRays < numRays / 2;
         boolean isInRoomFromEars = averageDistanceFromEars < 10f && numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
 
-        System.out.println("Room description from source: " + averageDistance
-                + ", numRays: " + numRays
-                + ", escapedRays: " + escapedRays
-                + ", isInRoom: " + isInRoom);
-
-        System.out.println("Room description from ears: " + averageDistanceFromEars
-                + ", numRays: " + numRaysFromEars
-                + ", escapedRays: " + escapedRaysFromEars
-                + ", isInRoom: " + isInRoomFromEars);
+//        System.out.println("Room description from source: " + averageDistance
+//                + ", numRays: " + numRays
+//                + ", escapedRays: " + escapedRays
+//                + ", isInRoom: " + isInRoom);
+//
+//        System.out.println("Room description from ears: " + averageDistanceFromEars
+//                + ", numRays: " + numRaysFromEars
+//                + ", escapedRays: " + escapedRaysFromEars
+//                + ", isInRoom: " + isInRoomFromEars);
         if (!isInRoom && !isInRoomFromEars) {
             setLowpassIntensity(0.5f, client.timer.partialTicks);
             return;
@@ -177,7 +160,6 @@ public class StreamingAudioSource implements AutoCloseable {
     }
 
     public Object[] calculateRoomDescription(Minecraft client, Player entity) {
-        //measure the size of the room the player is in by raycasting in 6 directions and measuring distance to nearest solid block
         Vec3 pos = entity.getPosition(client.timer.partialTicks, true);
         float maxDistance = 20f;
         float totalDistance = 0f;
@@ -227,7 +209,6 @@ public class StreamingAudioSource implements AutoCloseable {
     }
 
     public boolean queueSamples(ByteBuffer samples) {
-        lastHeard = System.currentTimeMillis();
         int numBuffersToUnqueue = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
         numBuffersAvailable += numBuffersToUnqueue;
         for (int i = 0; i < numBuffersToUnqueue; i++) {
