@@ -75,12 +75,13 @@ public class StreamingAudioSource implements AutoCloseable {
     }
 
     public void setupLowpass() {
-        // test for EFX support
-
+        if (!AL10.alIsExtensionPresent("AL_EXT_EFX")) {
+            System.out.println("OpenAL EFX extension not supported, lowpass effect will not be available.");
+            return;
+        }
         int filter = EXTEfx.alGenFilters();
         EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
 
-        // Set the cutoff frequency (in Hz)
         EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, 1f); // Adjust gain as needed
         EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, lowpassIntensity); // Attenuate high frequencies
 
@@ -101,6 +102,7 @@ public class StreamingAudioSource implements AutoCloseable {
         lowpassIntensity = MathHelper.clamp(lowpassIntensity, 0f, 1f);
 
         EXTEfx.alFilterf(lowpassFilter, EXTEfx.AL_LOWPASS_GAINHF, lowpassIntensity); // Attenuate high frequencies
+        EXTEfx.alEffectf(lowpassFilter, EXTEfx.AL_LOWPASS_GAIN, 0.1f); // Set the gain for the lowpass filter
         //System.out.println("Set lowpass intensity to " + lowpassIntensity);
         AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, lowpassFilter);
 
