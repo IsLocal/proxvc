@@ -14,6 +14,7 @@ public class StreamingAudioSource implements AutoCloseable {
     private final IntBuffer buffers = BufferUtils.createIntBuffer(NUM_BUFFERS);
     private int bufferIndex = 0;
     private int numBuffersAvailable = NUM_BUFFERS;
+    public float volume = 1.0f;
 
     public StreamingAudioSource() {
 

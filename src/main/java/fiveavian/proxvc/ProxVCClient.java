@@ -2,6 +2,8 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.MicrophoneListComponent;
+import fiveavian.proxvc.gui.VolumeMixerComponent;
+import fiveavian.proxvc.util.MixerStore;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -87,6 +89,7 @@ public class ProxVCClient implements ClientModInitializer {
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
+        MixerStore.load();
         try {
             socket = new DatagramSocket();
             device = new AudioInputDevice();
@@ -105,8 +108,11 @@ public class ProxVCClient implements ClientModInitializer {
             OptionsCategory controlsCategory = new OptionsCategory("gui.options.page.proxvc.category.controls")
                     .withComponent(new KeyBindingComponent(keyMute))
                     .withComponent(new KeyBindingComponent(keyPushToTalk));
+            OptionsCategory mixerCategory = new OptionsCategory("gui.options.page.proxvc.category.mixer")
+                    .withComponent(new VolumeMixerComponent(sources));
             OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Blocks.NOTEBLOCK.getDefaultStack()))
                     .withComponent(generalCategory)
+                    .withComponent(mixerCategory)
                     .withComponent(devicesCategory)
                     .withComponent(controlsCategory);
             device.open(selectedInputDevice.value);
@@ -134,6 +140,7 @@ public class ProxVCClient implements ClientModInitializer {
             if (device != null) {
                 device.close();
             }
+            MixerStore.save();
         } catch (InterruptedException ex) {
             System.out.println("Failed to stop the ProxVC client because of an exception.");
             ex.printStackTrace();
@@ -158,6 +165,7 @@ public class ProxVCClient implements ClientModInitializer {
         for (int entityId : toAdd) {
             if (!sources.containsKey(entityId)) {
                 sources.put(entityId, new StreamingAudioSource());
+                sources.get(entityId).volume = MixerStore.getMixerProperty(entityId);
             }
         }
 
@@ -184,7 +192,7 @@ public class ProxVCClient implements ClientModInitializer {
             AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.x, (float) look.y, (float) look.z);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
-            AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value);
+            AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value * source.volume);
         }
     }
 

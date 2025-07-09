@@ -3,6 +3,7 @@ gui.options.page.proxvc.category.general=General
 gui.options.page.proxvc.category.devices=Devices
 gui.options.page.proxvc.category.controls=Controls
 gui.options.page.proxvc.label.no_devices=No microphones found :(
+gui.options.page.proxvc.category.mixer=Audio Mixer
 
 key.mute=Mute Microphone
 key.push_to_talk=Push-to-Talk
