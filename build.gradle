@@ -66,6 +66,9 @@ repositories {
 			artifact()
 		}
 	}
+	maven {
+		url "https://jitpack.io"
+	}
 }
 
 dependencies {
@@ -82,7 +85,25 @@ dependencies {
 	implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0"
 	implementation "com.google.guava:guava:33.0.0-jre"
 
+	//https://github.com/kovertopz/Paulscode-SoundSystem
+	compileOnly("com.github.kovertopz:Paulscode-SoundSystem:master-SNAPSHOT")
+
 	modRuntimeOnly "ModMenu:ModMenu-bta:${project.mod_menu_version}"
+	implementation "org.slf4j:slf4j-api:2.0.7"
+	implementation "org.slf4j:slf4j-log4j12:2.0.7"
+
+	runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-assimp::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
+	implementation("org.lwjgl:lwjgl:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-assimp:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
 }
 
 java {

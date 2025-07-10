@@ -60,6 +60,13 @@ public class StreamingAudioSource implements AutoCloseable {
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);
         AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 16f);
+
+        //mouth to world
+        AL11.alSourcef(source, AL11.AL_CONE_INNER_ANGLE, 100f);
+        AL11.alSourcef(source, AL11.AL_CONE_OUTER_ANGLE, 220f);
+        AL11.alSourcef(source, EXTEfx.AL_CONE_OUTER_GAINHF, 0.6f); // Disable high frequency attenuation in the cone
+        AL11.alSourcef(source, AL11.AL_CONE_OUTER_GAIN, 0.6f);
+
     }
 
     public void setupLowpass() {
@@ -96,11 +103,11 @@ public class StreamingAudioSource implements AutoCloseable {
         int slot = EXTEfx.alGenAuxiliaryEffectSlots();
         int effect = EXTEfx.alGenEffects();
 
-        EXTEfx.alEffecti(effect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);
+        EXTEfx.alEffecti(effect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_EAXREVERB);
 
         EXTEfx.alAuxiliaryEffectSloti(slot, EXTEfx.AL_EFFECTSLOT_EFFECT, effect);
 
-        EXTEfx.alEffectf(effect, EXTEfx.AL_REVERB_GAIN, 0.0f);
+        EXTEfx.alEffectf(effect, EXTEfx.AL_EAXREVERB_GAIN, 0.0f);
 
         reverbSlot = slot;
         reverbEffect = effect;

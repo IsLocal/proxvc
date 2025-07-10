@@ -178,15 +178,16 @@ public class ProxVCClient implements ClientModInitializer {
                 continue;
             }
             source.calculateMuffleIntensity(client, (Player) entity);
-
+            Vec3 headPos = ((Player) entity).getPosition(client.timer.partialTicks, true);
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);
             AL10.alSourcef(source.source, AL10.AL_REFERENCE_DISTANCE, 16f);
-            AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
+            AL10.alSource3f(source.source, AL10.AL_POSITION, (float) headPos.x, (float) headPos.y, (float) headPos.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.x, (float) look.y, (float) look.z);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
             AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value);
+            //4103 is the OpenAL source type for streaming audio
         }
     }
 
