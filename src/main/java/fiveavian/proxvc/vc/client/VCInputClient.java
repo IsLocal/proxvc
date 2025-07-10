@@ -60,12 +60,9 @@ public class VCInputClient implements Runnable {
             return;
         }
         ByteBuffer samples = device.pollSamples();
-        if (samples == null) {
-            return;
-        }
         packet.buffer.rewind();
         packet.buffer.putInt(client.thePlayer.id);
-        if (vcClient.isMuted.value || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed())) {
+        if (vcClient.isMuted.value || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed()) || samples == null) {
             ticksUntilNoopPacket -= 1;
             if (ticksUntilNoopPacket > 0) {
                 return;
