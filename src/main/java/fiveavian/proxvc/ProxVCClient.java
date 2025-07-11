@@ -20,6 +20,7 @@ import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.input.InputDevice;
 import net.minecraft.client.option.*;
+import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.core.block.Blocks;
 import net.minecraft.core.entity.Entity;
@@ -30,6 +31,7 @@ import net.minecraft.client.render.texture.Texture;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
+import org.lwjgl.opengl.GL11;
 
 import java.net.*;
 import java.nio.file.Path;
@@ -58,6 +60,7 @@ public class ProxVCClient implements ClientModInitializer {
     public OptionBoolean showWaveform;
     public OptionBoolean showMicStatus;
     public OptionString selectedInputDevice;
+    public  OptionFloat muffleIntensity;
     public Option<?>[] options;
     public Path optionFilePath;
     private boolean isMutePressed = false;
@@ -84,7 +87,8 @@ public class ProxVCClient implements ClientModInitializer {
         showWaveform = new OptionBoolean(client.gameSettings, "show_waveform", true);
         showMicStatus = new OptionBoolean(client.gameSettings, "show_mic_status", true);
         selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", null);
-        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice, showWaveform, showMicStatus};
+        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice, showWaveform, showMicStatus, muffleIntensity};
+        muffleIntensity = new OptionFloat(client.gameSettings, "muffle_intensity", 1f);
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
@@ -112,10 +116,15 @@ public class ProxVCClient implements ClientModInitializer {
             OptionsCategory mixerCategory = new OptionsCategory("gui.options.page.proxvc.category.mixer")
                     .withComponent(new VolumeMixerComponent(sources));
             mixerCategory.collapsed = true;
+            OptionsCategory effectsCategory = new OptionsCategory("gui.options.page.proxvc.category.effects")
+                    .withComponent(new FloatOptionComponent(muffleIntensity));
+
             OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Blocks.NOTEBLOCK.getDefaultStack()))
                     .withComponent(generalCategory)
                     .withComponent(mixerCategory)
                     .withComponent(devicesCategory)
+                    .withComponent(controlsCategory)
+                    .withComponent(effectsCategory)
                     .withComponent(controlsCategory)
                     .withComponent(hudCategory);
             ((HudComponentStatus) HudComponents.INSTANCE.getComponent("mic_status"))
@@ -193,6 +202,8 @@ public class ProxVCClient implements ClientModInitializer {
             if (source == null) {
                 continue;
             }
+            source.calculateMuffleIntensity(client, (Player) entity, muffleIntensity.value);
+            Vec3 headPos = ((Player) entity).getPosition(client.timer.partialTicks, true);
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_EXPONENT_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_ROLLOFF_FACTOR, 2);
