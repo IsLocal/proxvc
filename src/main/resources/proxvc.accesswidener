@@ -1,6 +1,5 @@
 accessWidener v2 named
 
-accessible class net/betterthanadventure/sound/SourceLWJGL3OpenAL
 accessible field net/minecraft/server/net/handler/PacketHandlerServer mcServer Lnet/minecraft/server/MinecraftServer;
 accessible field net/minecraft/server/net/handler/PacketHandlerServer playerEntity Lnet/minecraft/server/entity/player/PlayerServer;
 accessible field net/minecraft/server/entity/EntityTrackerImpl trackedEntityHashTable Lnet/minecraft/core/util/collection/IntHashMap;

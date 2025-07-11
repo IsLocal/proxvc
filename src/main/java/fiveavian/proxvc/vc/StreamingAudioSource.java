@@ -116,9 +116,9 @@ public class StreamingAudioSource implements AutoCloseable {
         AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbEffect, 0, EXTEfx.AL_DIRECT_FILTER);
     }
 
-    public void calculateMuffleIntensity(Minecraft client, Player entity, float intensity) {
-        if (intensity == 0) {
-            setLowpassIntensity(0.5f, client.timer.partialTicks);
+    public void calculateMuffleIntensity(Minecraft client, Player entity, float intensityOptionFloatValue) {
+        if (intensityOptionFloatValue == 0) {
+            setLowpassIntensity(EFXConfig.NOEFFECT_LOWPASS, client.timer.partialTicks);
             return;
         }
         HitResult hitFromEars = client.currentWorld.checkBlockCollisionBetweenPoints(
@@ -132,9 +132,10 @@ public class StreamingAudioSource implements AutoCloseable {
                 false);
 
         if (hitFromEars == null || hitFromSource == null || hitFromEars.hitType != HitResult.HitType.TILE || hitFromSource.hitType != HitResult.HitType.TILE) {
-            setLowpassIntensity(0.5f, client.timer.partialTicks);
+            setLowpassIntensity(EFXConfig.NOEFFECT_LOWPASS, client.timer.partialTicks);
             return;
         }
+        // Shoot rays in 16 directions from the player and the source to get description of the room
 
         Object[] roomDescription = calculateRoomDescription(client, entity);
         float averageDistance = (float) roomDescription[0];
@@ -148,23 +149,34 @@ public class StreamingAudioSource implements AutoCloseable {
         int escapedRaysFromEars = (int) roomDescriptionFromEars[2];
         int escapedMouthRaysFromEars = (int) roomDescriptionFromEars[3];
 
-        boolean isInRoom = averageDistance < 10f && numRays > 0 && escapedRays < numRays / 2;
-        boolean isInRoomFromEars = averageDistanceFromEars < 10f && numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
+        // Check if the player is in a room based on the number of rays that hit solid blocks
+        //If more rays escaped than hit, we assume the player is outside or in a large open space
+        boolean isInRoom = numRays > 0 && escapedRays < numRays / 2;
+        boolean isInRoomFromEars = numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
 
+        // If the player is not in a room, we set the lowpass intensity to the default value
+        // Additional implements for reverb and other effects can be added here
         if (!isInRoom && !isInRoomFromEars) {
-            setLowpassIntensity(0.5f, client.timer.partialTicks);
+            setLowpassIntensity(EFXConfig.NOEFFECT_LOWPASS, client.timer.partialTicks);
             return;
         }
 
         double thickness = hitFromEars.location.distanceTo(hitFromSource.location);
-        //block != null && block.getMaterial().isSolid()
+
         Block<?> blockAtEars = client.currentWorld.getBlock(hitFromEars.x, hitFromEars.y, hitFromEars.z);
         Block<?> blockAtSource = client.currentWorld.getBlock(hitFromSource.x, hitFromSource.y, hitFromSource.z);
+
+        assert blockAtEars != null;
+        assert blockAtSource != null;
+
+        // Calculate the cumulative blast resistance of the blocks in the path
         float resistance = 0f;
         resistance += blockAtEars.blastResistance + blockAtSource.blastResistance;
 
-        // get resistance between the two blocks
         for (int i = 0; i < thickness; i++) {
+            if (resistance > EFXConfig.TWO_BLOCK_RESISTANCE_REF) {
+                break;
+            }
             Vec3 dir = hitFromSource.location.add(-hitFromSource.x, -hitFromSource.y, -hitFromSource.z)
                     .normalize().scale(i);
 
@@ -172,34 +184,28 @@ public class StreamingAudioSource implements AutoCloseable {
             Block<?> block = client.currentWorld.getBlock((int) pos.x, (int) pos.y, (int) pos.z);
             if (block != null) {
                 resistance += block.blastResistance;
-                if (resistance > 12f) {
-                    break; // stop if resistance is too high
-                }
             }
         }
 
-        assert blockAtEars != null;
-        assert blockAtSource != null;
+        resistance /= (EFXConfig.TWO_BLOCK_RESISTANCE_REF);
 
+        float baseIntensityFormula = (float) MathHelper.lerp(EFXConfig.NOEFFECT_LOWPASS, 0.0,
+                MathHelper.clamp(thickness / EFXConfig.REFERENCE_DISTANCE, 0f, 1f));
 
-        resistance /= 12f;
-
-        float baseIntensityFormula = (float) MathHelper.lerp(0.5, 0.0,
-                MathHelper.clamp(thickness / 5f, 0f, 1f));
-
-        baseIntensityFormula = MathHelper.lerp(0.5f, baseIntensityFormula, resistance);
-
+        baseIntensityFormula = MathHelper.lerp(EFXConfig.NOEFFECT_LOWPASS, baseIntensityFormula, resistance);
 
         baseIntensityFormula = MathHelper.clamp(baseIntensityFormula, 0f, 1f);
-        float intensityFromPlayer = MathHelper.clamp(intensity, 0f, 1f);
 
+        float intensityFromPlayer = MathHelper.clamp(intensityOptionFloatValue, 0f, 1f);
+
+        // Calculate the influence of the rays that escaped from the mouth
         int mouthalInfluence = 0;
         if (escapedMouthRays > 0) {
             mouthalInfluence = (int) MathHelper.clamp(escapedMouthRays / (float) numRays, 0f, 1f);
         }
-        System.out.println("Mouthal influence: " + mouthalInfluence + " | Escaped rays: " + escapedMouthRays + " | Num rays: " + numRays);
+
         float finalIntensity = MathHelper.lerp(baseIntensityFormula, 1f, 1 - intensityFromPlayer);
-        finalIntensity = MathHelper.lerp(finalIntensity, 0.5f, mouthalInfluence * 0.5f);
+        finalIntensity = MathHelper.lerp(finalIntensity, EFXConfig.NOEFFECT_LOWPASS, mouthalInfluence * 0.5f);
         setLowpassIntensity(finalIntensity, client.timer.partialTicks);
 
 
