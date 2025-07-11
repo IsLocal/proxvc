@@ -5,6 +5,9 @@ import fiveavian.proxvc.vc.StreamingAudioSource;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.options.components.OptionsComponent;
+import net.minecraft.client.render.tessellator.Tessellator;
+import net.minecraft.client.render.texture.stitcher.IconCoordinate;
+import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.Player;
 import net.minecraft.core.net.command.TextFormatting;
 import net.minecraft.core.sound.SoundCategory;
@@ -15,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Alternatively could be done with motified OptionsCategory and FloatOptionComponents
+ * Alternatively could be done with modified OptionsCategory and or FloatOptionComponents
  * but found this to be more flexible and easier to implement.
  */
 
@@ -92,7 +95,16 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
             mc.currentScreen.drawString(mc.font, "Load into a server first!", x + 5, y, 0xFFFFFF);
             return; // If the current screen is null, do not render
         }
-        if (sources.isEmpty()) {
+        if (sources.isEmpty()) {//gui\sprites\screen\creative\clear.png
+            mc.textureManager.loadTexture("/assets/minecraft/textures/gui/sprites/screen/creative/clear.png").bind();
+            Tessellator.instance.startDrawingQuads();
+            Tessellator.instance.setColorRGBA_F(1f, 1f, 1f, 0.5f);
+            Tessellator.instance.drawRectangleWithUV(
+                    x - 10, y,
+                    (int) 9.6,9,
+                    1, 0, 1, 1);
+            Tessellator.instance.draw();
+
             mc.currentScreen.drawString(mc.font, (renderTooltip ? TextFormatting.YELLOW.toString() : "") + "No audio sources found.", x + 5 , y, 0xFFFFFF);
             return;
         }
@@ -188,9 +200,9 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
                 continue;
             String entityName = null;
 
-            for (Player player : mc.currentWorld.players) {
+            for (Entity player : mc.currentWorld.loadedEntityList) {
                 if (player.id == entityId) {
-                    entityName = player.username;
+                    entityName = ((Player)player).username;
                     break;
                 }
             }

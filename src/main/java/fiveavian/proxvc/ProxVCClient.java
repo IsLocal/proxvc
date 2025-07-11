@@ -107,6 +107,7 @@ public class ProxVCClient implements ClientModInitializer {
                     .withComponent(new KeyBindingComponent(keyPushToTalk));
             OptionsCategory mixerCategory = new OptionsCategory("gui.options.page.proxvc.category.mixer")
                     .withComponent(new VolumeMixerComponent(sources));
+            mixerCategory.collapsed = true;
             OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Blocks.NOTEBLOCK.getDefaultStack()))
                     .withComponent(generalCategory)
                     .withComponent(mixerCategory)
