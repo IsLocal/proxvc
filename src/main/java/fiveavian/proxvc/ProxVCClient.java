@@ -55,6 +55,7 @@ public class ProxVCClient implements ClientModInitializer {
     public OptionBoolean isMuted;
     public OptionBoolean usePushToTalk;
     public OptionString selectedInputDevice;
+    public  OptionFloat muffleIntensity;
     public Option<?>[] options;
     public Path optionFilePath;
     private boolean isMutePressed = false;
@@ -80,7 +81,10 @@ public class ProxVCClient implements ClientModInitializer {
         isMuted = new OptionBoolean(client.gameSettings, "is_muted", false);
         usePushToTalk = new OptionBoolean(client.gameSettings, "use_push_to_talk", false);
         selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", null);
-        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice};
+        muffleIntensity = new OptionFloat(client.gameSettings, "muffle_intensity", 1f);
+
+
+        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice, muffleIntensity};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
@@ -102,10 +106,14 @@ public class ProxVCClient implements ClientModInitializer {
             OptionsCategory controlsCategory = new OptionsCategory("gui.options.page.proxvc.category.controls")
                     .withComponent(new KeyBindingComponent(keyMute))
                     .withComponent(new KeyBindingComponent(keyPushToTalk));
+            OptionsCategory effectsCategory = new OptionsCategory("gui.options.page.proxvc.category.effects")
+                    .withComponent(new FloatOptionComponent(muffleIntensity));
+
             OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Blocks.NOTEBLOCK.getDefaultStack()))
                     .withComponent(generalCategory)
                     .withComponent(devicesCategory)
-                    .withComponent(controlsCategory);
+                    .withComponent(controlsCategory)
+                    .withComponent(effectsCategory);
             device.open(selectedInputDevice.value);
             System.out.println("ProxVC successfully started.");
         } catch (SocketException ex) {
@@ -174,7 +182,7 @@ public class ProxVCClient implements ClientModInitializer {
             if (source == null) {
                 continue;
             }
-            source.calculateMuffleIntensity(client, (Player) entity);
+            source.calculateMuffleIntensity(client, (Player) entity, muffleIntensity.value);
             Vec3 headPos = ((Player) entity).getPosition(client.timer.partialTicks, true);
             Vec3 look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);

@@ -2,6 +2,7 @@ gui.options.page.proxvc.title=ProxVC
 gui.options.page.proxvc.category.general=General
 gui.options.page.proxvc.category.devices=Devices
 gui.options.page.proxvc.category.controls=Controls
+gui.options.page.proxvc.category.effects=Effects
 gui.options.page.proxvc.label.no_devices=No microphones found :(
 
 key.mute=Mute Microphone
@@ -10,3 +11,4 @@ key.push_to_talk=Push-to-Talk
 options.sound.voice_chat=Voice Chat Volume
 options.is_muted=Is Muted
 options.use_push_to_talk=Use Push-to-Talk
+options.muffle_intensity=Muffle Intensity
