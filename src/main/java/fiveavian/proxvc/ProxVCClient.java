@@ -210,8 +210,8 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void login(Minecraft client, PacketLogin packet) {
-            Socket socket = (Socket) client.getSendQueue().netManager.socket;
-            serverAddress = socket.getRemoteSocketAddress();
+        Socket socket = (Socket) client.getSendQueue().netManager.socket;
+        serverAddress = socket.getRemoteSocketAddress();
     }
 
     private void disconnect(Minecraft client) {

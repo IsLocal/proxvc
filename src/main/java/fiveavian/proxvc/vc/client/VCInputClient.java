@@ -53,10 +53,7 @@ public class VCInputClient implements Runnable {
     }
 
     private void sendNextPacket() throws Exception {
-        if (sources.isEmpty()) {
-            return;
-        }
-        if (client.thePlayer == null) {
+        if (sources.isEmpty() || client.thePlayer == null) {
             return;
         }
         ByteBuffer samples = device.pollSamples();

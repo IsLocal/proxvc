@@ -1,10 +1,10 @@
 plugins {
-	id 'fabric-loom' version '1.7.bta'
-	id 'java'
+	id("fabric-loom") version "1.10.0-bta"
+	id("java")
 }
 
 import org.gradle.internal.os.OperatingSystem
-project.ext.lwjglVersion = "3.3.3"
+project.ext.lwjglVersion = "3.3.4"
 
 switch (OperatingSystem.current()) {
 	case OperatingSystem.LINUX:
@@ -83,6 +83,21 @@ dependencies {
 	implementation "com.google.guava:guava:33.0.0-jre"
 
 	modRuntimeOnly "ModMenu:ModMenu-bta:${project.mod_menu_version}"
+
+	implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+
+	runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-assimp::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-openal::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+	runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
+	implementation("org.lwjgl:lwjgl:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-assimp:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+	implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
 }
 
 java {

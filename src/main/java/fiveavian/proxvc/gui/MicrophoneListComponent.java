@@ -10,11 +10,14 @@ import net.minecraft.core.lang.I18n;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class MicrophoneListComponent implements OptionsComponent {
     private static final int MARGIN = 3;
     private static final int BUTTON_HEIGHT = 16;
     private static final int BUTTON_HEIGHT_WITH_MARGIN = BUTTON_HEIGHT + MARGIN;
+    // I ended up using a negative look ahead at the end plus the end modifier to prevent replacing entire string with blank
+    private static final Pattern SPECIFIER_PATTERN = Pattern.compile("OpenAL Soft on\\s+(?!($|\\s+$))");
 
     private final AudioInputDevice device;
     private final OptionString specifierOption;
@@ -98,7 +101,7 @@ public class MicrophoneListComponent implements OptionsComponent {
                 tessellator.draw();
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
             }
-            font.drawString(specifier.replaceFirst("OpenAL Soft on\\s+(?!($|\\s+$))", ""), x + 1, y + 4, 0xFFFFFF);
+            font.drawString(SPECIFIER_PATTERN.matcher(specifier).replaceFirst(""), x + 1, y + 4, 0xFFFFFF);
             y += BUTTON_HEIGHT_WITH_MARGIN;
         }
     }

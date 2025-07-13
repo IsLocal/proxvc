@@ -10,7 +10,7 @@ import java.nio.IntBuffer;
 public class StreamingAudioSource implements AutoCloseable {
     private static final int NUM_BUFFERS = 8;
 
-    public final int source ;
+    public final int source;
     private final IntBuffer buffers = BufferUtils.createIntBuffer(NUM_BUFFERS);
     private int bufferIndex = 0;
     private int numBuffersAvailable = NUM_BUFFERS;
@@ -19,7 +19,7 @@ public class StreamingAudioSource implements AutoCloseable {
         try {
             source = AL10.alGenSources();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate OpenAL source. Is OpenAL initialized? Check if your volume is set to 0!", e);
+            throw new RuntimeException("Failed to generate OpenAL source. Something terrible happened, report it to our github! https://github.com/5Avian/proxvc/issues", e);
         }
         AL10.alGenBuffers(buffers);
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
