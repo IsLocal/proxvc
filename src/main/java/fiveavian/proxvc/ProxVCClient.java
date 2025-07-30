@@ -1,6 +1,7 @@
 package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
+import fiveavian.proxvc.gui.HudComponentStatus;
 import fiveavian.proxvc.gui.MicrophoneListComponent;
 import fiveavian.proxvc.gui.VolumeMixerComponent;
 import fiveavian.proxvc.util.MixerStore;
@@ -12,12 +13,12 @@ import fiveavian.proxvc.vc.client.VCOutputClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.hud.component.HudComponents;
 import net.minecraft.client.gui.options.components.*;
 import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.input.InputDevice;
 import net.minecraft.client.option.*;
-import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.core.block.Blocks;
 import net.minecraft.core.entity.Entity;
@@ -28,7 +29,6 @@ import net.minecraft.client.render.texture.Texture;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
-import org.lwjgl.opengl.GL11;
 
 import java.net.DatagramSocket;
 import java.net.Socket;
@@ -77,7 +77,6 @@ public class ProxVCClient implements ClientModInitializer {
 
     private void start(Minecraft client) {
         this.client = client;
-        statusIconTexture = client.textureManager.loadTexture("/gui/proxvc.png");
         voiceChatVolume = new OptionFloat(client.gameSettings, "sound.voice_chat", 1.0f);
         isMuted = new OptionBoolean(client.gameSettings, "is_muted", false);
         usePushToTalk = new OptionBoolean(client.gameSettings, "use_push_to_talk", false);
@@ -113,6 +112,8 @@ public class ProxVCClient implements ClientModInitializer {
                     .withComponent(mixerCategory)
                     .withComponent(devicesCategory)
                     .withComponent(controlsCategory);
+            ((HudComponentStatus) HudComponents.INSTANCE.getComponent("mic_status"))
+                    .setStatusData(usePushToTalk, isMuted, keyPushToTalk, device);
             device.open(selectedInputDevice.value);
             System.out.println("ProxVC successfully started.");
         } catch (SocketException ex) {
@@ -198,24 +199,7 @@ public class ProxVCClient implements ClientModInitializer {
         if (isDisconnected() || !client.gameSettings.immersiveMode.drawOverlays()) {
             return;
         }
-        statusIconTexture.bind();
-        GL11.glColor4d(1.0, 1.0, 1.0, 1.0);
-        double u = 0.0;
-        if (isMuted.value) {
-            u = 0.2;
-        } else if (device.isClosed()) {
-            u = 0.4;
-        } else if (usePushToTalk.value && !keyPushToTalk.isPressed()) {
-            u = 0.6;
-        } else if (device.isClosed()) {
-            u = 0.2;
-        } else if (device.isTalking()) {
-            u = 0.8;
-        }
-        Tessellator.instance.startDrawingQuads();
-        Tessellator.instance.setColorRGBA_F(1f, 1f, 1f, 0.5f);
-        Tessellator.instance.drawRectangleWithUV(4, client.resolution.getScaledHeightScreenCoords() - 24 - 4, 24, 24, u, 0.0, 0.20, 1.0);
-        Tessellator.instance.draw();
+
     }
 
     private void login(Minecraft client, PacketLogin packet) {

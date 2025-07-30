@@ -8,7 +8,8 @@
     "client.PacketHandlerClientMixin",
     "client.WorldRendererMixin",
     "client.SoundEngineMixin",
-    "client.ALC10Mixin"
+    "client.ALC10Mixin",
+    "client.HudComponentsMixin"
   ],
   "server": [
     "server.MinecraftServerMixin"
