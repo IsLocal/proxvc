@@ -65,8 +65,11 @@ public class AudioInputDevice implements AutoCloseable {
         isTalking = !isSilent(samples);
         return samples;
     }
+    public synchronized void setTalk(boolean bool) {
+        isTalking = bool;
+    }
 
-    public synchronized boolean isTalking() {
+        public synchronized boolean isTalking() {
         if (isClosed()) {
             return false;
         }

@@ -77,7 +77,7 @@ public class VCRelayServer implements Runnable {
     }
 
     private void shareSamples(SocketAddress sourceAddress, PlayerServer sourcePlayer, SocketAddress address, PlayerServer player) throws Exception {
-        if (sourceAddress.equals(address) || sourcePlayer.id == player.id || sourcePlayer.distanceTo(player) > 32f) {
+        if (sourceAddress.equals(address) || sourcePlayer.id == player.id) {
             return;
         }
         samples.rewind();

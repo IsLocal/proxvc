@@ -31,10 +31,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 
-import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -197,9 +194,10 @@ public class ProxVCClient implements ClientModInitializer {
                 continue;
             }
             Vec3 look = entity.getLookAngle();
-            AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
+            AL10.alDistanceModel(AL11.AL_EXPONENT_DISTANCE);
+            AL10.alSourcef(source.source, AL10.AL_ROLLOFF_FACTOR, 2);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);
-            AL10.alSourcef(source.source, AL10.AL_REFERENCE_DISTANCE, 16f);
+            AL10.alSourcef(source.source, AL10.AL_REFERENCE_DISTANCE, 5f);
             AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.x, (float) look.y, (float) look.z);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
