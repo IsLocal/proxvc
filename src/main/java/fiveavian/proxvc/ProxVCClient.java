@@ -2,6 +2,7 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.HudComponentStatus;
+import fiveavian.proxvc.gui.HudComponentWaveForm;
 import fiveavian.proxvc.gui.MicrophoneListComponent;
 import fiveavian.proxvc.gui.VolumeMixerComponent;
 import fiveavian.proxvc.util.MixerStore;
@@ -35,10 +36,11 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+/*
+#TODO Fix bug with output logic.
+*/
 
 public class ProxVCClient implements ClientModInitializer {
     public Minecraft client;
@@ -56,6 +58,8 @@ public class ProxVCClient implements ClientModInitializer {
     public OptionFloat voiceChatVolume;
     public OptionBoolean isMuted;
     public OptionBoolean usePushToTalk;
+    public OptionBoolean showWaveform;
+    public OptionBoolean showMicStatus;
     public OptionString selectedInputDevice;
     public Option<?>[] options;
     public Path optionFilePath;
@@ -80,12 +84,13 @@ public class ProxVCClient implements ClientModInitializer {
         voiceChatVolume = new OptionFloat(client.gameSettings, "sound.voice_chat", 1.0f);
         isMuted = new OptionBoolean(client.gameSettings, "is_muted", false);
         usePushToTalk = new OptionBoolean(client.gameSettings, "use_push_to_talk", false);
+        showWaveform = new OptionBoolean(client.gameSettings, "show_waveform", true);
+        showMicStatus = new OptionBoolean(client.gameSettings, "show_mic_status", true);
         selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", null);
-        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice};
+        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice, showWaveform, showMicStatus};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
-        MixerStore.load();
         try {
             socket = new DatagramSocket();
             device = new AudioInputDevice();
@@ -104,6 +109,9 @@ public class ProxVCClient implements ClientModInitializer {
             OptionsCategory controlsCategory = new OptionsCategory("gui.options.page.proxvc.category.controls")
                     .withComponent(new KeyBindingComponent(keyMute))
                     .withComponent(new KeyBindingComponent(keyPushToTalk));
+            OptionsCategory hudCategory = new OptionsCategory("gui.options.page.proxvc.category.hud")
+                    .withComponent(new BooleanOptionComponent(showWaveform))
+                            .withComponent(new BooleanOptionComponent(showMicStatus));
             OptionsCategory mixerCategory = new OptionsCategory("gui.options.page.proxvc.category.mixer")
                     .withComponent(new VolumeMixerComponent(sources));
             mixerCategory.collapsed = true;
@@ -111,9 +119,12 @@ public class ProxVCClient implements ClientModInitializer {
                     .withComponent(generalCategory)
                     .withComponent(mixerCategory)
                     .withComponent(devicesCategory)
-                    .withComponent(controlsCategory);
+                    .withComponent(controlsCategory)
+                    .withComponent(hudCategory);
             ((HudComponentStatus) HudComponents.INSTANCE.getComponent("mic_status"))
-                    .setStatusData(usePushToTalk, isMuted, keyPushToTalk, device);
+                    .setStatusData(usePushToTalk, isMuted,showMicStatus, keyPushToTalk, device);
+            ((HudComponentWaveForm) HudComponents.INSTANCE.getComponent("waveform"))
+                    .setWaveformData(showWaveform, device);
             device.open(selectedInputDevice.value);
             System.out.println("ProxVC successfully started.");
         } catch (SocketException ex) {
@@ -159,7 +170,8 @@ public class ProxVCClient implements ClientModInitializer {
             }
         }
         for (int entityId : toRemove) {
-            sources.remove(entityId).close();
+            sources.get(entityId).close();
+            sources.remove(entityId);
         }
         for (int entityId : toAdd) {
             if (!sources.containsKey(entityId)) {
@@ -196,15 +208,13 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void render(Minecraft client, WorldRenderer renderer) {
-        if (isDisconnected() || !client.gameSettings.immersiveMode.drawOverlays()) {
-            return;
-        }
+
 
     }
 
     private void login(Minecraft client, PacketLogin packet) {
-            Socket socket = (Socket) client.getSendQueue().netManager.socket;
-            serverAddress = socket.getRemoteSocketAddress();
+        Socket socket = (Socket) client.getSendQueue().netManager.socket;
+        serverAddress = socket.getRemoteSocketAddress();
     }
 
     private void disconnect(Minecraft client) {

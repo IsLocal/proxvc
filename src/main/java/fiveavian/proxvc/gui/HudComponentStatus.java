@@ -7,7 +7,6 @@ import net.minecraft.client.gui.hud.HudIngame;
 import net.minecraft.client.gui.hud.component.HudComponentMovable;
 import net.minecraft.client.gui.hud.component.layout.Layout;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.Option;
 import net.minecraft.client.option.OptionBoolean;
 import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.client.render.texture.Texture;
@@ -20,6 +19,7 @@ public class HudComponentStatus extends HudComponentMovable {
     private OptionBoolean isMuted;
     private KeyBinding keyPushToTalk;
     private AudioInputDevice device;
+    private OptionBoolean showMicStatus;
 
 
     public HudComponentStatus(String key, Layout layout) {
@@ -29,14 +29,15 @@ public class HudComponentStatus extends HudComponentMovable {
 
     @Override
     public boolean isVisible(Minecraft minecraft) {
-        return true;
+        return minecraft.gameSettings.immersiveMode.drawOverlays() && showMicStatus.value;
     }
 
-    public void setStatusData(OptionBoolean usePushToTalk, OptionBoolean isMuted, KeyBinding keyPushToTalk, AudioInputDevice device) {
-        statusIconTexture= mc.textureManager.loadTexture("/gui/proxvc.png");
+    public void setStatusData(OptionBoolean usePushToTalk, OptionBoolean isMuted, OptionBoolean showMicStatus, KeyBinding keyPushToTalk, AudioInputDevice device) {
+        statusIconTexture = mc.textureManager.loadTexture("/gui/proxvc.png");
         this.usePushToTalk = usePushToTalk;
         this.isMuted = isMuted;
         this.keyPushToTalk = keyPushToTalk;
+        this.showMicStatus = showMicStatus;
         this.device = device;
     }
 

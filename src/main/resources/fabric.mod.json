@@ -6,7 +6,8 @@
   "description": "A primitive voice chat mod for Better Than Adventure!",
   "authors": [
     "5Avian",
-    "DoctorZeppelin"
+    "DoctorZeppelin",
+    "IsLocal"
   ],
   "icon": "proxvc_icon.png",
   "license": "MIT",

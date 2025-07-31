@@ -14,6 +14,7 @@ public class AudioInputDevice implements AutoCloseable {
     private final IntBuffer ints = BufferUtils.createIntBuffer(1);
     private Long device = null;
     private boolean isTalking = false;
+    public int[] points;
 
     public static String[] getSpecifiers() {
         List<String> result = null;
@@ -60,6 +61,7 @@ public class AudioInputDevice implements AutoCloseable {
         }
         samples.rewind();
         ALC11.alcCaptureSamples(device, samples, VCProtocol.SAMPLE_COUNT);
+        points = getWaveformPoints(samples, 20);
         isTalking = !isSilent(samples);
         return samples;
     }
@@ -83,6 +85,17 @@ public class AudioInputDevice implements AutoCloseable {
             }
         }
         return true; // All samples are below the threshold
+    }
+
+    public static int[] getWaveformPoints(ByteBuffer samples, int numPoints) {
+        int sampleCount = samples.remaining() / 2; // 16-bit samples
+        int[] points = new int[numPoints];
+        for (int i = 0; i < numPoints; i++) {
+            int sampleIndex = i * sampleCount / numPoints;
+            short sample = samples.getShort(sampleIndex * 2);
+            points[i] = sample; // Scale as needed for rendering
+        }
+        return points;
     }
 
     @Override

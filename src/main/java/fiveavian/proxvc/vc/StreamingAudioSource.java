@@ -28,6 +28,10 @@ public class StreamingAudioSource implements AutoCloseable {
         AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);
         AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 16f);
+
+        if (AL10.alGetError() != AL10.AL_NO_ERROR) {
+            throw new RuntimeException("Failed to open streaming audio source " + source);
+        }
     }
 
     public boolean queueSamples(ByteBuffer samples) {
