@@ -21,6 +21,12 @@ public class HudComponentWaveForm extends HudComponentMovable {
         super(key, 100, 15, layout);
 
     }
+
+    public void setWaveformData(OptionBoolean showWaveform, AudioInputDevice device) {
+        this.showWaveform = showWaveform;
+        this.device = device;
+    }
+
     @Override
     public boolean isVisible(Minecraft minecraft) {
         return minecraft.gameSettings.immersiveMode.drawOverlays() && showWaveform.value;
@@ -142,7 +148,6 @@ public class HudComponentWaveForm extends HudComponentMovable {
             return new int[]{minX, minY};
         }
     }
-
     private int[] drawBackgroundModern(int minX, int minY, int maxX, int maxY) {
         int x = minX + 4;
         int y = minY + 4;
@@ -189,11 +194,5 @@ public class HudComponentWaveForm extends HudComponentMovable {
         GL11.glDisable(3042);
         GL11.glEnable(3008);
         GL11.glEnable(3553);
-    }
-
-
-    public void setWaveformData(OptionBoolean showWaveform, AudioInputDevice device) {
-        this.showWaveform = showWaveform;
-        this.device = device;
     }
 }

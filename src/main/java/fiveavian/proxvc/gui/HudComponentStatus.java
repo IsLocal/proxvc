@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 
 public class HudComponentStatus extends HudComponentMovable {
     Minecraft mc = Minecraft.getMinecraft();
-    private Texture statusIconTexture;
     private OptionBoolean usePushToTalk;
     private OptionBoolean isMuted;
     private KeyBinding keyPushToTalk;
@@ -26,14 +25,7 @@ public class HudComponentStatus extends HudComponentMovable {
         super(key, 24, 24, layout);
     }
 
-
-    @Override
-    public boolean isVisible(Minecraft minecraft) {
-        return minecraft.gameSettings.immersiveMode.drawOverlays() && showMicStatus.value;
-    }
-
     public void setStatusData(OptionBoolean usePushToTalk, OptionBoolean isMuted, OptionBoolean showMicStatus, KeyBinding keyPushToTalk, AudioInputDevice device) {
-        statusIconTexture = mc.textureManager.loadTexture("/gui/proxvc.png");
         this.usePushToTalk = usePushToTalk;
         this.isMuted = isMuted;
         this.keyPushToTalk = keyPushToTalk;
@@ -42,11 +34,16 @@ public class HudComponentStatus extends HudComponentMovable {
     }
 
     @Override
+    public boolean isVisible(Minecraft minecraft) {
+        return minecraft.gameSettings.immersiveMode.drawOverlays() && showMicStatus.value;
+    }
+
+    @Override
     public void render(Minecraft mc, HudIngame hud, int xSizeScreen, int ySizeScreen, float partialTick) {
         int x = this.getLayout().getComponentX(mc, this, xSizeScreen);
         int y = this.getLayout().getComponentY(mc, this, ySizeScreen);
 
-        statusIconTexture.bind();
+        mc.textureManager.loadTexture("/gui/proxvc.png").bind();
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0);
         double u = 0.0;
         if (isMuted.value) {
@@ -71,7 +68,7 @@ public class HudComponentStatus extends HudComponentMovable {
         int x = this.getLayout().getComponentX(mc, this, xSizeScreen);
         int y = this.getLayout().getComponentY(mc, this, ySizeScreen);
 
-        statusIconTexture.bind();
+        mc.textureManager.loadTexture("/gui/proxvc.png").bind();
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0);
         double u = 0.0;
 

@@ -61,8 +61,6 @@ public class AudioInputDevice implements AutoCloseable {
         }
         samples.rewind();
         ALC11.alcCaptureSamples(device, samples, VCProtocol.SAMPLE_COUNT);
-        points = getWaveformPoints(samples, 20);
-        isTalking = !isSilent(samples);
         return samples;
     }
     public synchronized void setTalk(boolean bool) {
@@ -74,6 +72,16 @@ public class AudioInputDevice implements AutoCloseable {
             return false;
         }
         return isTalking;
+    }
+
+    public void gatherInfo(boolean muted) {
+        if (muted) {
+            points = null;
+            isTalking = false;
+            return;
+        }
+        points = getWaveformPoints(samples, 20);
+        isTalking = !isSilent(samples);
     }
 
     // did not write this lolll

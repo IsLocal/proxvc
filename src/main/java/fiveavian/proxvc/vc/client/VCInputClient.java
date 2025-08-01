@@ -54,8 +54,7 @@ public class VCInputClient implements Runnable {
 
     private void sendNextPacket() throws Exception {
         if (sources.isEmpty()) {
-            device.points = null;
-            device.setTalk(false);
+            device.gatherInfo(true);
             return;
         }
         if (client.thePlayer == null) {
@@ -71,7 +70,9 @@ public class VCInputClient implements Runnable {
             }
             ticksUntilNoopPacket = TICKS_UNTIL_NOOP_PACKET;
             samples = EMPTY_BUFFER;
+            device.gatherInfo(true);
         } else {
+            device.gatherInfo(false);
             ticksUntilNoopPacket = TICKS_UNTIL_NOOP_PACKET;
         }
         samples.rewind();

@@ -6,4 +6,6 @@ accessible field net/minecraft/server/entity/EntityTrackerImpl trackedEntityHash
 accessible field net/minecraft/client/net/handler/PacketHandlerClient netManager Lnet/minecraft/core/net/NetworkManager;
 accessible field net/minecraft/core/net/NetworkManager socket Ljava/net/Socket;
 accessible field net/minecraft/client/Minecraft mcDataDir Ljava/io/File;
+accessible field net/minecraft/client/Minecraft timer Lnet/minecraft/core/Timer;
 accessible field net/minecraft/client/gui/options/components/OptionsCategory collapsed Z
+accessible field net/minecraft/client/render/entity/EntityRenderer renderDispatcher Lnet/minecraft/client/render/EntityRenderDispatcher;

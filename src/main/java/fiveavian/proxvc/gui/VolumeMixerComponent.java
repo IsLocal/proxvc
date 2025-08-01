@@ -23,7 +23,7 @@ import java.util.Map;
  */
 
 public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonElement> {
-    private final float AMP_FACTOR = 5.0F; // Factor to convert slider value to volume
+    private final float AMP_FACTOR = 10.0F; // Factor to convert slider value to volume
     private static final int BUTTON_HEIGHT = 20;
 
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -206,10 +206,12 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
                     break;
                 }
             }
+            assert entityName != null;
             SliderElement slider = new SliderElement(entityId,
                     0, 0, 150, BUTTON_HEIGHT,
-                    "Volume: " + entityName + " (" + (int) (source.volume / AMP_FACTOR * AMP_FACTOR * 100) + "%)",
+                    "",
                     (source.volume / AMP_FACTOR));
+            updateSliderDisplayString(slider, entityName);
             slider.enabled = true;
             ButtonElement resetButton = (new ButtonElement(0, 0, 0, 20, 20, ""))
                     .setTextures("minecraft:gui/misc/icon_reset",
@@ -229,10 +231,21 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
         SliderElement slider = (SliderElement) object;
         StreamingAudioSource source = sources.get(slider.id);
         if (source != null) {
-            slider.displayString = "Volume: " + entityIdToName.get(slider.id) + " (" + (int) (slider.sliderValue * AMP_FACTOR * 100) + "%)";
+            String entityName = entityIdToName.get(slider.id);
+            updateSliderDisplayString(slider, entityName);
             source.volume = (float) (slider.sliderValue * AMP_FACTOR); // Assuming the slider value is between 0 and 1
             MixerStore.setMixerProperty(slider.id, (float) (slider.sliderValue * AMP_FACTOR));
+        } else {
+
+            slidersLayout.elements.remove(object);
+            entityIdToSlider.remove(slider.id);
+            entityIdToName.remove(slider.id);
+            sliderToResetButton.remove(slider);
         }
+    }
+
+    public void updateSliderDisplayString(SliderElement slider, String entityName) {
+        slider.displayString = "Volume: " + (entityName.length() > 8 ? entityName.substring(0, 7) + "..." : entityName) + " (" + (int) (slider.sliderValue * AMP_FACTOR * 100) + "%)";
     }
 
     @Override

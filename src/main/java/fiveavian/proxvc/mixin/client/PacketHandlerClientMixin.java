@@ -29,6 +29,13 @@ public class PacketHandlerClientMixin {
             listener.accept(mc, packet);
         }
     }
+    @Inject(method = "sendFinalPacket", at = @At("HEAD"))
+    public void sendFinalPacket(CallbackInfo ci) {
+        for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT) {
+            listener.accept(mc);
+        }
+    }
+
 
     @Inject(method = "handleKickDisconnect", at = @At("HEAD"))
     public void handleKickDisconnect(PacketDisconnect packet, CallbackInfo ci) {

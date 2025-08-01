@@ -9,10 +9,13 @@ gui.options.page.proxvc.category.mixer=Audio Mixer
 
 key.mute=Mute Microphone
 key.push_to_talk=Push-to-Talk
-
+key.open_menu=Open Options
 options.sound.voice_chat=Voice Chat Volume
 options.is_muted=Is Muted
 options.use_push_to_talk=Use Push-to-Talk
-options.show_mic_status=Mic icon
-options.show_waveform=Waveform
+options.show_mic_status=Show Mic icon
+options.show_waveform=Show Waveform
 options.muffle_intensity=Muffle Intensity
+options.attenuation_profile=Attenuation Profile
+options.attenuation_profile.realistic=Realistic
+options.attenuation_profile.voice_clarity=Voice Clarity
