@@ -1,5 +1,6 @@
 package fiveavian.proxvc.vc;
 
+import fiveavian.proxvc.util.Waveforms;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
@@ -39,7 +40,8 @@ public class StreamingAudioSource implements AutoCloseable {
 
 
     }
-    public ByteBuffer lastSamples = ByteBuffer.allocate(VCProtocol.BUFFER_SIZE);
+    public int[] lastWaveformPoints = Waveforms.getWaveformPoints(null, 20);
+
     public void queueSamples(ByteBuffer samples) {
         int numBuffersToUnqueue = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
         numBuffersAvailable += numBuffersToUnqueue;
@@ -49,14 +51,13 @@ public class StreamingAudioSource implements AutoCloseable {
         if (numBuffersAvailable == 0) {
             return;
         }
-        if (samples != null && samples.remaining() > 0) {
-            lastSamples.limit(samples.remaining());
-            lastSamples.put(samples);
-            samples.rewind();
-            lastSamples.rewind();
-        }
         AL10.alBufferData(buffers.get(bufferIndex), AL10.AL_FORMAT_MONO16, samples, VCProtocol.SAMPLE_RATE);
         AL10.alSourceQueueBuffers(source, buffers.get(bufferIndex));
+        //save copt
+        if (samples.remaining() > 0) {
+            lastWaveformPoints = Waveforms.getWaveformPoints(samples, 20);
+        }
+
         int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
         if (state != AL10.AL_PLAYING) {
             AL10.alSourcePlay(source);
@@ -71,9 +72,9 @@ public class StreamingAudioSource implements AutoCloseable {
         switch (profile) {
             case REALISTIC:
                 AL10.alDistanceModel(AL11.AL_EXPONENT_DISTANCE);
-                AL10.alSourcef(source, AL10.AL_ROLLOFF_FACTOR, 2.7f);
+                AL10.alSourcef(source, AL10.AL_ROLLOFF_FACTOR, 4f);
                 AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 32f);
-                AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 5f);
+                AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 16f);
                 break;
             case VOICE_CLARITY:
                 AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);

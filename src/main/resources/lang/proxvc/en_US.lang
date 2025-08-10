@@ -19,3 +19,13 @@ options.muffle_intensity=Muffle Intensity
 options.attenuation_profile=Attenuation Profile
 options.attenuation_profile.realistic=Realistic
 options.attenuation_profile.voice_clarity=Voice Clarity
+
+options.waveform_type=Speech Indicator
+options.waveform_type.basic=Waveform
+options.waveform_type.glow=Glow
+options.waveform_type.particle=Particle
+options.waveform_type.dot=Dot
+options.waveform_type.spectrum=Spectrum
+options.waveform_type.ring=Ring
+options.waveform_type.matrix=Matrix
+options.waveform_type.off=Off

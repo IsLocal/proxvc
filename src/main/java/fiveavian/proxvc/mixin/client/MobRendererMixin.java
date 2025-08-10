@@ -1,11 +1,12 @@
 package fiveavian.proxvc.mixin.client;
 
 import fiveavian.proxvc.ProxVCClient;
+import fiveavian.proxvc.util.Waveforms;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.render.Font;
+import net.minecraft.client.render.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.MobRenderer;
 import net.minecraft.client.render.tessellator.Tessellator;
@@ -21,29 +22,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.nio.ByteBuffer;
 
 @Mixin(value = MobRenderer.class, remap = false)
-public class MobRendererMixin<T extends Mob> {
-    @Unique
-    private static ProxVCClient proxVC;
+public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
 
 
     @Inject(method = "renderLivingLabel", at = @At("HEAD"))
     public void renderLivingLabel(Tessellator tessellator, T entity, String s, double d, double d1, double d2, int maxDistance, boolean depthTest, CallbackInfo ci) {
+        if (ProxVCClient.instance.waveformType.value == Waveforms.types.OFF) return;
         if (!(entity instanceof Player)) return;
 
         float f = (float) ((EntityRenderer<?>) (Object) this).renderDispatcher.camera.distanceTo(entity);
         if (f > (float) maxDistance) return;
 
-        if (proxVC == null) {
-            proxVC = (ProxVCClient) FabricLoader.getInstance()
-                    .getEntrypoints("client", ClientModInitializer.class)
-                    .stream()
-                    .filter(e -> e instanceof ProxVCClient)
-                    .findFirst()
-                    .get();
-        }
-
-        StreamingAudioSource source = proxVC.sources.get(entity.id);
-        if (source == null || source.lastSamples == null) return;
+        StreamingAudioSource source = ProxVCClient.instance.sources.get(entity.id);
+        if (source == null) return;
 
         // Use the same transformations as the name
         GL11.glPushMatrix();
@@ -55,11 +46,6 @@ public class MobRendererMixin<T extends Mob> {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDepthMask(false);
 
-        // Draw twice - once for depth testing, once without
-        // First pass - with depth testing for occluded parts
-        if (!depthTest) {
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-        }
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -68,36 +54,25 @@ public class MobRendererMixin<T extends Mob> {
         float xOffset = -width / 2;
         float yOffset = -12;
 
-        // Background with depth testing (semi-transparent)
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        tessellator.startDrawingQuads();
-        tessellator.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F);
-        tessellator.addVertex(xOffset - 1, yOffset - 1, 0.0);
-        tessellator.addVertex(xOffset - 1, yOffset + height + 1, 0.0);
-        tessellator.addVertex(xOffset + width + 1, yOffset + height + 1, 0.0);
-        tessellator.addVertex(xOffset + width + 1, yOffset - 1, 0.0);
-        tessellator.draw();
 
-        // Waveform with depth testing (dimmed)
-        int[] audioDataArray = getWaveformPoints(source.lastSamples, 20);
-        renderWaveform(audioDataArray, xOffset, yOffset, width, height, 0.25f); // Dimmed version
+//        // Waveform with depth testing (dimmed)
+        int[] audioDataArray =  source.lastWaveformPoints;
+//        renderDotWaveform(audioDataArray, xOffset, yOffset, width, height, 0.25f); // Dimmed version
+//        renderGlowWaveform(audioDataArray, xOffset, yOffset, width, height, 0.25f); // Full brightness version
+
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+
+        Waveforms.renderWaveformStyle(null, audioDataArray, xOffset, yOffset, width, height, 0.15f, true, (float)this.renderDispatcher.camera.distanceTo(entity));
+
+
 
         // Second pass - without depth testing for visible parts
         if (!depthTest) {
             GL11.glEnable(GL11.GL_DEPTH_TEST);
         }
 
-        // Background without depth testing
-        tessellator.startDrawingQuads();
-        tessellator.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.75F);
-        tessellator.addVertex(xOffset - 1, yOffset - 1, 0.0);
-        tessellator.addVertex(xOffset - 1, yOffset + height + 1, 0.0);
-        tessellator.addVertex(xOffset + width + 1, yOffset + height + 1, 0.0);
-        tessellator.addVertex(xOffset + width + 1, yOffset - 1, 0.0);
-        tessellator.draw();
-
-        // Waveform without depth testing (full brightness)
-        renderWaveform(audioDataArray, xOffset, yOffset, width, height, 1.0f); // Full brightness version
+        Waveforms.renderWaveformStyle(null, audioDataArray, xOffset, yOffset, width, height, 1f, true, (float)this.renderDispatcher.camera.distanceTo(entity)); // Full brightness version
 
         // Restore GL state
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -111,31 +86,8 @@ public class MobRendererMixin<T extends Mob> {
         GL11.glPopMatrix();
     }
 
-    @Unique
-    public int[] getWaveformPoints(ByteBuffer samples, int numPoints) {
-        return AudioInputDevice.getWaveformPoints(samples, numPoints);
-    }
 
-    @Unique
-    private void renderWaveform(int[] points, float x, float y, float width, float height, float alpha) {
-        int n = points.length;
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glLineWidth(2.0f); // Make the line a bit thicker
-        GL11.glBegin(GL11.GL_LINE_STRIP);
 
-        for (int i = 0; i < n; i++) {
-            float px = x + (i * width) / (n - 1);
-            float norm = Math.abs(points[i]) / 32768.0f; // 0 (low) to 1 (high)
-            float r = norm;
-            float g = 1.0f - norm;
-            GL11.glColor4f(0, 0, 1f, alpha);
-            float py = y + height / 2 - (points[i] / (32768.0f * 3)) * ((float) height / 2);
-            GL11.glVertex2f(px, py);
-        }
-
-        GL11.glEnd();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-    }
 }
 
 

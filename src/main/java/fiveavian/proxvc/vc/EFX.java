@@ -2,14 +2,20 @@ package fiveavian.proxvc.vc;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.block.Block;
+import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.Player;
 import net.minecraft.core.util.helper.MathHelper;
+import net.minecraft.core.util.helper.Side;
 import net.minecraft.core.util.phys.HitResult;
 import net.minecraft.core.util.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.EXTEfx;
+import org.lwjgl.opengl.GL11;
 
+import javax.print.DocFlavor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -66,15 +72,18 @@ public class EFX {
     public void setLowpassIntensity(float intensity, float partialTick) {
         if (lowpassFilter == null)
             return;
-        intensity = MathHelper.clamp(intensity, 0f, 0.5f);
+        intensity = MathHelper.clamp(intensity, 0f, EFXConfig.NOEFFECT_LOWPASS);
         if (Math.abs(intensity - lowpassIntensity) < 0.01f)
             return;
-
-        lowpassIntensity = MathHelper.lerp(lowpassIntensity, intensity, 0.13f * partialTick * 20f);
+        float speed = 0.15f;
+        if (intensity > lowpassIntensity) {
+            speed = 0.01f;
+        }
+        lowpassIntensity = MathHelper.lerp(lowpassIntensity, intensity, speed * partialTick * 20f);
         lowpassIntensity = MathHelper.clamp(lowpassIntensity, 0f, 1f);
 
         EXTEfx.alFilterf(lowpassFilter, EXTEfx.AL_LOWPASS_GAINHF, lowpassIntensity); // Attenuate high frequencies
-        EXTEfx.alEffectf(lowpassFilter, EXTEfx.AL_LOWPASS_GAIN, 0.1f); // Set the gain for the lowpass filter
+        EXTEfx.alEffectf(lowpassFilter, EXTEfx.AL_LOWPASS_GAIN, 0.03f); // Set the gain for the lowpass filter
         AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, lowpassFilter);
 
     }
@@ -131,10 +140,10 @@ public class EFX {
 
         // Check if the player is in a room based on the number of rays that hit solid blocks
         //If more rays escaped than hit, we assume the player is outside or in a large open space
-        boolean isInRoom = numRays > 0 && escapedRays < numRays / 2;
-        boolean isInRoomFromEars = numRaysFromEars > 0 && escapedRaysFromEars < numRaysFromEars / 2;
+        boolean isInRoom = numRays > 0 && (float) escapedRays / numRays < 0.5f;
+        boolean isInRoomFromEars = numRaysFromEars > 0 && (float) escapedRaysFromEars / numRaysFromEars < 0.5f;
 
-        // If the player is not in a room, we set the lowpass intensity to the default value
+       // If the player is not in a room, we set the lowpass intensity to the default value
         // Additional implements for reverb and other effects can be added here
         if (!isInRoom && !isInRoomFromEars) {
             setLowpassIntensity(EFXConfig.NOEFFECT_LOWPASS, client.timer.partialTicks);
@@ -191,7 +200,7 @@ public class EFX {
 
     public Object[] calculateRoomDescription(Minecraft client, Player entity) {
         Vec3 pos = entity.getPosition(client.timer.partialTicks, true);
-        float maxDistance = 20f;
+        float maxDistance = 5f;
         float totalDistance = 0f;
         int escapedRays = 0;
         int numRays = 0;
@@ -199,9 +208,11 @@ public class EFX {
 
 
         for (Vec3 dir : directions) {
+            //randomize a half block
+            Vec3 normalizedDir = Vec3.getTempVec3(dir.x, dir.y, dir.z).normalize();
             HitResult hit = client.currentWorld.checkBlockCollisionBetweenPoints(
                     pos,
-                    Vec3.getTempVec3(pos.x, pos.y, pos.z).add(dir.x * maxDistance, dir.y * maxDistance, dir.z * maxDistance),
+                    Vec3.getTempVec3(pos.x, pos.y, pos.z).add(normalizedDir.x * maxDistance, normalizedDir.y * maxDistance, normalizedDir.z * maxDistance),
                     true);
             Block<?> block = null;
             if (hit != null && hit.hitType == HitResult.HitType.TILE) {
@@ -215,7 +226,7 @@ public class EFX {
             } else {
 
                 escapedRays++;
-                if (dir.dotProduct(entity.getLookAngle()) >= 0.5f) {
+                if (normalizedDir.dotProduct(entity.getLookAngle()) >= 0.5f) {
                     escapedMouthRays++;
                 }
             }
@@ -235,6 +246,7 @@ public class EFX {
                 escapedMouthRays // number of rays that did not hit solid blocks and were directed away from the mouth
         };
     }
+    //companion
 
     public void setReverbEnabled(boolean enable) {
         if (reverbSlot == null || reverbEffect == null)
@@ -244,6 +256,22 @@ public class EFX {
         } else if (!enable && reverbEnabled) {
             AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, EXTEfx.AL_EFFECTSLOT_NULL, 0, EXTEfx.AL_FILTER_NULL);
         }
+    }
+
+    private void debugDrawRay(Vec3 start, Vec3 end, int color) {
+        // Draw a line from start to end for debugging
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glLineWidth(2.0F);
+        GL11.glBegin(GL11.GL_LINES);
+        GL11.glColor3f(
+                ((color >> 16) & 0xFF) / 255.0f,
+                ((color >> 8) & 0xFF) / 255.0f,
+                (color & 0xFF) / 255.0f
+        );
+        GL11.glVertex3d(start.x, start.y, start.z);
+        GL11.glVertex3d(end.x, end.y, end.z);
+        GL11.glEnd();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
     public void close() {
@@ -260,4 +288,8 @@ public class EFX {
             reverbSlot = null;
         }
     }
+
+
+
 }
+

@@ -1,5 +1,6 @@
 package fiveavian.proxvc.gui;
 
+import fiveavian.proxvc.util.Waveforms;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -16,7 +17,6 @@ public class HudComponentWaveForm extends HudComponentMovable {
     private AudioInputDevice device;
     private Minecraft mc;
 
-    private int[] blankPoints = new int[20];
     public HudComponentWaveForm(String key, Layout layout) {
         super(key, 100, 15, layout);
 
@@ -31,6 +31,7 @@ public class HudComponentWaveForm extends HudComponentMovable {
     public boolean isVisible(Minecraft minecraft) {
         return minecraft.gameSettings.immersiveMode.drawOverlays() && showWaveform.value;
     }
+
     @Override
     public void render(Minecraft mc, HudIngame hud, int xSizeScreen, int ySizeScreen, float partialTick) {
         if (this.mc == null) {
@@ -41,8 +42,9 @@ public class HudComponentWaveForm extends HudComponentMovable {
         //hud.drawRect(x, y, x + 100, y + 15, 0x80000000);
 
         drawBackground(x, y, x + 100, y + 15);
-
-        renderWaveform(device.points != null ? device.points : blankPoints, x+2,y, 96, 15);
+        Waveforms.renderWaveformStyle(Waveforms.types.BASIC, device.points,
+                x + 2, y, 96, 13, 1f, false, null);
+        //renderWaveform(device.points != null ? device.points : blankPoints, x+2,y, 96, 15);
     }
 
     @Override
@@ -53,27 +55,8 @@ public class HudComponentWaveForm extends HudComponentMovable {
         gui.drawRect(x, y, x + 100, y + 15, 0x80000000);
 
         //drawBackground(x, y, x + 90, y + 15);
-        renderWaveform(blankPoints, x+2,y, 96, 15);
-    }
-
-    public void renderWaveform(int[] points, int x, int y, int width, int height) {
-        int n = points.length;
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-
-        GL11.glBegin(GL11.GL_LINE_STRIP);
-        for (int i = 0; i < n; i++) {
-            float px = x + (i * width) / (n - 1);
-            float norm = Math.abs(points[i]) / 32768.0f; // 0 (low) to 1 (high)
-            float r = norm;
-            float g = 1.0f - norm;
-            GL11.glColor3f(r, g, 0.0f);
-            float py = y + height / 2 - (points[i] / 32768.0f) * ((float) height / 2);
-            GL11.glVertex2f(px, py);
-        }
-        GL11.glEnd();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-
+        Waveforms.renderWaveformStyle(Waveforms.types.BASIC, null,
+                x + 2, y, 96, 13, 1f, false, null);
     }
 
     private int[] drawBackground(int minX, int minY, int maxX, int maxY) {
@@ -90,64 +73,65 @@ public class HudComponentWaveForm extends HudComponentMovable {
             int horWidth2 = maxX - minX - 6;
             int vertHeight2 = maxY - minY - 6;
             Tessellator tl = Tessellator.instance;
-            this.mc.textureManager.bindTexture(this.mc.textureManager.loadTexture(((TooltipStyle)TooltipStyle.CRT).getFilePath()));
+            this.mc.textureManager.bindTexture(this.mc.textureManager.loadTexture(((TooltipStyle) TooltipStyle.CRT).getFilePath()));
             GL11.glEnable(3042);
             GL11.glBlendFunc(770, 771);
             tl.startDrawingQuads();
-            tl.drawRectangleWithUV(minX, minY, 7, 7, (double)0.0F, (double)0.0F, (double)0.21875F, (double)0.21875F);
-            tl.drawRectangleWithUV(minX, bottomLeftCornerY, 7, 7, (double)0.0F, (double)0.21875F, (double)0.21875F, (double)0.21875F);
-            tl.drawRectangleWithUV(topRightCornerX, minY, 7, 7, (double)0.21875F, (double)0.0F, (double)0.21875F, (double)0.21875F);
-            tl.drawRectangleWithUV(bottomRightCornerX, bottomRightCornerY, 7, 7, (double)0.21875F, (double)0.21875F, (double)0.21875F, (double)0.21875F);
+            tl.drawRectangleWithUV(minX, minY, 7, 7, (double) 0.0F, (double) 0.0F, (double) 0.21875F, (double) 0.21875F);
+            tl.drawRectangleWithUV(minX, bottomLeftCornerY, 7, 7, (double) 0.0F, (double) 0.21875F, (double) 0.21875F, (double) 0.21875F);
+            tl.drawRectangleWithUV(topRightCornerX, minY, 7, 7, (double) 0.21875F, (double) 0.0F, (double) 0.21875F, (double) 0.21875F);
+            tl.drawRectangleWithUV(bottomRightCornerX, bottomRightCornerY, 7, 7, (double) 0.21875F, (double) 0.21875F, (double) 0.21875F, (double) 0.21875F);
 
-            for(int x = minX + 7; x < minX + 7 + horWidth / 11 * 11; x += 11) {
-                tl.drawRectangleWithUV(x, minY, 11, 3, (double)0.4375F, (double)0.0F, (double)0.34375F, (double)0.09375F);
+            for (int x = minX + 7; x < minX + 7 + horWidth / 11 * 11; x += 11) {
+                tl.drawRectangleWithUV(x, minY, 11, 3, (double) 0.4375F, (double) 0.0F, (double) 0.34375F, (double) 0.09375F);
             }
 
             int finalWidth = horWidth - horWidth / 11 * 11;
-            tl.drawRectangleWithUV(topRightCornerX - finalWidth, minY, finalWidth, 3, (double)0.4375F, (double)0.0F, (double)((float)finalWidth / 32.0F), (double)0.09375F);
+            tl.drawRectangleWithUV(topRightCornerX - finalWidth, minY, finalWidth, 3, (double) 0.4375F, (double) 0.0F, (double) ((float) finalWidth / 32.0F), (double) 0.09375F);
 
-            for(int x = minX + 7; x < minX + 7 + horWidth / 11 * 11; x += 11) {
-                tl.drawRectangleWithUV(x, maxY - 3, 11, 3, (double)0.4375F, (double)0.34375F, (double)0.34375F, (double)0.09375F);
+            for (int x = minX + 7; x < minX + 7 + horWidth / 11 * 11; x += 11) {
+                tl.drawRectangleWithUV(x, maxY - 3, 11, 3, (double) 0.4375F, (double) 0.34375F, (double) 0.34375F, (double) 0.09375F);
             }
 
-            tl.drawRectangleWithUV(bottomRightCornerX - finalWidth, maxY - 3, finalWidth, 3, (double)0.4375F, (double)0.34375F, (double)((float)finalWidth / 32.0F), (double)0.09375F);
+            tl.drawRectangleWithUV(bottomRightCornerX - finalWidth, maxY - 3, finalWidth, 3, (double) 0.4375F, (double) 0.34375F, (double) ((float) finalWidth / 32.0F), (double) 0.09375F);
 
-            for(int y = minY + 7; y < minY + 7 + vertHeight / 11 * 11; y += 11) {
-                tl.drawRectangleWithUV(minX, y, 3, 11, (double)0.0F, (double)0.4375F, (double)0.09375F, (double)0.34375F);
+            for (int y = minY + 7; y < minY + 7 + vertHeight / 11 * 11; y += 11) {
+                tl.drawRectangleWithUV(minX, y, 3, 11, (double) 0.0F, (double) 0.4375F, (double) 0.09375F, (double) 0.34375F);
             }
 
             int finalHeight = vertHeight - vertHeight / 11 * 11;
-            tl.drawRectangleWithUV(minX, bottomLeftCornerY - finalHeight, 3, finalHeight, (double)0.0F, (double)0.4375F, (double)0.09375F, (double)((float)finalHeight / 32.0F));
+            tl.drawRectangleWithUV(minX, bottomLeftCornerY - finalHeight, 3, finalHeight, (double) 0.0F, (double) 0.4375F, (double) 0.09375F, (double) ((float) finalHeight / 32.0F));
 
-            for(int y = minY + 7; y < minY + 7 + vertHeight / 11 * 11; y += 11) {
-                tl.drawRectangleWithUV(maxX - 3, y, 3, 11, (double)0.34375F, (double)0.4375F, (double)0.09375F, (double)0.34375F);
+            for (int y = minY + 7; y < minY + 7 + vertHeight / 11 * 11; y += 11) {
+                tl.drawRectangleWithUV(maxX - 3, y, 3, 11, (double) 0.34375F, (double) 0.4375F, (double) 0.09375F, (double) 0.34375F);
             }
 
-            tl.drawRectangleWithUV(maxX - 3, bottomRightCornerY - finalHeight, 3, finalHeight, (double)0.34375F, (double)0.4375F, (double)0.09375F, (double)((float)finalHeight / 32.0F));
+            tl.drawRectangleWithUV(maxX - 3, bottomRightCornerY - finalHeight, 3, finalHeight, (double) 0.34375F, (double) 0.4375F, (double) 0.09375F, (double) ((float) finalHeight / 32.0F));
 
-            for(int x = minX + 3; x < minX + 3 + horWidth2 / 8 * 8; x += 8) {
-                for(int y = minY + 3; y < minY + 3 + vertHeight2 / 8 * 8; y += 8) {
-                    tl.drawRectangleWithUV(x, y, 8, 8, (double)0.4375F, (double)0.4375F, (double)0.25F, (double)0.25F);
+            for (int x = minX + 3; x < minX + 3 + horWidth2 / 8 * 8; x += 8) {
+                for (int y = minY + 3; y < minY + 3 + vertHeight2 / 8 * 8; y += 8) {
+                    tl.drawRectangleWithUV(x, y, 8, 8, (double) 0.4375F, (double) 0.4375F, (double) 0.25F, (double) 0.25F);
                 }
             }
 
             int finalHeight2 = vertHeight2 - vertHeight2 / 8 * 8;
             int finalWidth2 = horWidth2 - horWidth2 / 8 * 8;
 
-            for(int x = minX + 3; x < minX + 3 + horWidth2 / 8 * 8; x += 8) {
-                tl.drawRectangleWithUV(x, maxY - 3 - finalHeight2, 8, finalHeight2, (double)0.4375F, (double)0.4375F, (double)0.25F, (double)((float)finalHeight2 / 32.0F));
+            for (int x = minX + 3; x < minX + 3 + horWidth2 / 8 * 8; x += 8) {
+                tl.drawRectangleWithUV(x, maxY - 3 - finalHeight2, 8, finalHeight2, (double) 0.4375F, (double) 0.4375F, (double) 0.25F, (double) ((float) finalHeight2 / 32.0F));
             }
 
-            for(int y = minY + 3; y < minY + 3 + vertHeight2 / 8 * 8; y += 8) {
-                tl.drawRectangleWithUV(maxX - 3 - finalWidth2, y, finalWidth2, 8, (double)0.4375F, (double)0.4375F, (double)((float)finalWidth2 / 32.0F), (double)0.25F);
+            for (int y = minY + 3; y < minY + 3 + vertHeight2 / 8 * 8; y += 8) {
+                tl.drawRectangleWithUV(maxX - 3 - finalWidth2, y, finalWidth2, 8, (double) 0.4375F, (double) 0.4375F, (double) ((float) finalWidth2 / 32.0F), (double) 0.25F);
             }
 
-            tl.drawRectangleWithUV(maxX - 3 - finalWidth2, maxY - 3 - finalHeight2, finalWidth2, finalHeight2, (double)0.4375F, (double)0.4375F, (double)((float)finalWidth / 32.0F), (double)((float)finalWidth2 / 32.0F));
+            tl.drawRectangleWithUV(maxX - 3 - finalWidth2, maxY - 3 - finalHeight2, finalWidth2, finalHeight2, (double) 0.4375F, (double) 0.4375F, (double) ((float) finalWidth / 32.0F), (double) ((float) finalWidth2 / 32.0F));
             tl.draw();
             GL11.glDisable(3042);
             return new int[]{minX, minY};
         }
     }
+
     private int[] drawBackgroundModern(int minX, int minY, int maxX, int maxY) {
         int x = minX + 4;
         int y = minY + 4;
@@ -167,15 +151,16 @@ public class HudComponentWaveForm extends HudComponentMovable {
         this.drawGradientRect(x - 3, y + height + 2, x + width + 3, y + height + 3, lineColorBottom, lineColorBottom);
         return new int[]{x - 3, y - 4};
     }
+
     public void drawGradientRect(int minX, int minY, int maxX, int maxY, int argb1, int argb2) {
-        float a1 = (float)(argb1 >> 24 & 255) / 255.0F;
-        float r1 = (float)(argb1 >> 16 & 255) / 255.0F;
-        float g1 = (float)(argb1 >> 8 & 255) / 255.0F;
-        float b1 = (float)(argb1 & 255) / 255.0F;
-        float a2 = (float)(argb2 >> 24 & 255) / 255.0F;
-        float r2 = (float)(argb2 >> 16 & 255) / 255.0F;
-        float g2 = (float)(argb2 >> 8 & 255) / 255.0F;
-        float b2 = (float)(argb2 & 255) / 255.0F;
+        float a1 = (float) (argb1 >> 24 & 255) / 255.0F;
+        float r1 = (float) (argb1 >> 16 & 255) / 255.0F;
+        float g1 = (float) (argb1 >> 8 & 255) / 255.0F;
+        float b1 = (float) (argb1 & 255) / 255.0F;
+        float a2 = (float) (argb2 >> 24 & 255) / 255.0F;
+        float r2 = (float) (argb2 >> 16 & 255) / 255.0F;
+        float g2 = (float) (argb2 >> 8 & 255) / 255.0F;
+        float b2 = (float) (argb2 & 255) / 255.0F;
         GL11.glDisable(3553);
         GL11.glEnable(3042);
         GL11.glDisable(3008);
@@ -184,11 +169,11 @@ public class HudComponentWaveForm extends HudComponentMovable {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorRGBA_F(r1, g1, b1, a1);
-        tessellator.addVertex((double)maxX, (double)minY, (double)0.0F);
-        tessellator.addVertex((double)minX, (double)minY, (double)0.0F);
+        tessellator.addVertex((double) maxX, (double) minY, (double) 0.0F);
+        tessellator.addVertex((double) minX, (double) minY, (double) 0.0F);
         tessellator.setColorRGBA_F(r2, g2, b2, a2);
-        tessellator.addVertex((double)minX, (double)maxY, (double)0.0F);
-        tessellator.addVertex((double)maxX, (double)maxY, (double)0.0F);
+        tessellator.addVertex((double) minX, (double) maxY, (double) 0.0F);
+        tessellator.addVertex((double) maxX, (double) maxY, (double) 0.0F);
         tessellator.draw();
         GL11.glShadeModel(7424);
         GL11.glDisable(3042);

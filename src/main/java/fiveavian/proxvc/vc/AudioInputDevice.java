@@ -1,5 +1,6 @@
 package fiveavian.proxvc.vc;
 
+import fiveavian.proxvc.util.Waveforms;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.*;
 
@@ -80,7 +81,7 @@ public class AudioInputDevice implements AutoCloseable {
             isTalking = false;
             return;
         }
-        points = getWaveformPoints(samples, 20);
+        points = Waveforms.getWaveformPoints(samples, 20);
         isTalking = !isSilent(samples);
     }
 
@@ -96,17 +97,6 @@ public class AudioInputDevice implements AutoCloseable {
             }
         }
         return true; // All samples are below the threshold
-    }
-
-    public static int[] getWaveformPoints(ByteBuffer samples, int numPoints) {
-        int sampleCount = samples.remaining() / 2; // 16-bit samples
-        int[] points = new int[numPoints];
-        for (int i = 0; i < numPoints; i++) {
-            int sampleIndex = i * sampleCount / numPoints;
-            short sample = samples.getShort(sampleIndex * 2);
-            points[i] = sample; // Scale as needed for rendering
-        }
-        return points;
     }
 
     @Override
