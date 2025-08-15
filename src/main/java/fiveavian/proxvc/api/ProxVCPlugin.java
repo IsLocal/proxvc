@@ -6,11 +6,13 @@ import fiveavian.proxvc.vc.StreamingAudioSource;
 
 import java.nio.ByteBuffer;
 
-public interface ProxvcPlugin {
+public interface ProxVCPlugin {
+    void registerClientEvents(ClientEvents clientEvents);
+
     void onClientStart(ProxVCClient client);
 
     void onSetupSourceALContext(int alSource, StreamingAudioSource source);
-    void onSourceQueueAudio(StreamingAudioSource source, ByteBuffer samples);
+    void onSourceQueueSamples(StreamingAudioSource source, ByteBuffer samples);
 
     void onSourceClose(StreamingAudioSource source);
     void onProxvcStop(ProxVCClient client);
@@ -19,7 +21,4 @@ public interface ProxvcPlugin {
     String getVersion();
     String getAuthor();
     String getDescription();
-
-
-
 }

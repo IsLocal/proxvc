@@ -2,7 +2,6 @@ package fiveavian.proxvc.util;
 
 import fiveavian.proxvc.vc.StreamingAudioSource;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.util.helper.Time;
 import net.minecraft.core.util.phys.HitResult;
 import net.minecraft.core.util.phys.Vec3;
 import org.lwjgl.opengl.GL11;
@@ -11,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Scans enviroment for audio sources and outputs
@@ -53,12 +51,10 @@ public class EnvironmentDescriptor {
 
 
     public void scan() {
-        //First get the player's location
         Vec3 pos = client.thePlayer.getPosition(client.timer.partialTicks, true);
         bouncedBackRays = 0f;
         escapedRays = 0f;
         totalDistance = 0f;
-        //Now shoot rays out in diagonal and cardinal directions from the player
 
         for (Vec3 dir : directions) {
             Vec3 normalizedDir = Vec3.getTempVec3(dir.x, dir.y, dir.z).normalize();

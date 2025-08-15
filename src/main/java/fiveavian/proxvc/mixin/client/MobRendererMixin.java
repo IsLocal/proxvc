@@ -2,11 +2,7 @@ package fiveavian.proxvc.mixin.client;
 
 import fiveavian.proxvc.ProxVCClient;
 import fiveavian.proxvc.util.Waveforms;
-import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.render.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.MobRenderer;
 import net.minecraft.client.render.tessellator.Tessellator;
@@ -14,12 +10,9 @@ import net.minecraft.core.entity.Mob;
 import net.minecraft.core.entity.player.Player;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.nio.ByteBuffer;
 
 @Mixin(value = MobRenderer.class, remap = false)
 public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
@@ -62,10 +55,7 @@ public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
 
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-
         Waveforms.renderWaveformStyle(null, audioDataArray, xOffset, yOffset, width, height, 0.15f, true, (float)this.renderDispatcher.camera.distanceTo(entity));
-
-
 
         // Second pass - without depth testing for visible parts
         if (!depthTest) {
