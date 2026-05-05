@@ -38,7 +38,6 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
     private int absoluteMouseX = 0;
     private int absoluteMouseY = 0;
 
-    private  int relativeMouseX = 0;
     private  int relativeMouseY = 0;
 
     private  boolean renderTooltip = false;
@@ -75,7 +74,6 @@ public class VolumeMixerComponent implements OptionsComponent, Listener<ButtonEl
     public void render(int x, int y, int width, int relativeMouseX, int relativeMouseY) {
         absoluteMouseX = x + relativeMouseX;
         absoluteMouseY = y + relativeMouseY;
-        this.relativeMouseX = relativeMouseX;
         this.relativeMouseY = relativeMouseY;
 
         if (sources.isEmpty() && mc.currentWorld != null && relativeMouseY > 0 && relativeMouseY < 10 && relativeMouseX > 0 ) {

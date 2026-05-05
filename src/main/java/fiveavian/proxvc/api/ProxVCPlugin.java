@@ -1,7 +1,6 @@
 package fiveavian.proxvc.api;
 
 import fiveavian.proxvc.ProxVCClient;
-import fiveavian.proxvc.ProxVCServer;
 import fiveavian.proxvc.vc.StreamingAudioSource;
 
 import java.nio.ByteBuffer;

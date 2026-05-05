@@ -6,11 +6,6 @@ import net.minecraft.core.util.helper.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-
-
-
-
 
 public class Waveforms {
     public enum types {
@@ -20,7 +15,7 @@ public class Waveforms {
         GLOW,
         DOT,
         SPECTRUM,
-        RING
+        RING,
     }
     private static final int[] blankPoints = new int[20];
 
@@ -39,15 +34,24 @@ public class Waveforms {
         return points;
     }
 
-    public static void renderWaveformStyle(Waveforms.types type,int[] points, float x, float y, float width, float height, float alpha, boolean drawBackground, Float distanceFromCamera) {
+    public static void renderWaveformStyle(Waveforms.types type, int[] points, float x, float y, float width, float height, float alpha, boolean drawBackground, Float distanceFromCamera) {
         if (points == null) {
             points = blankPoints;
         }
         if (type == null) {
             type = ProxVCClient.instance.waveformType.value;
         }
+        if (distanceFromCamera != null) {
+            alpha *= Math.max(0.35f, 1.0f - distanceFromCamera / 64.0f);
+        }
         switch (type) {
             case OFF: return;
+            case BASIC:
+                if (drawBackground) {
+                    drawBackground(x, y, width, height, alpha);
+                }
+                renderOscilloscopeWaveform(points, x, y, width, height, alpha);
+                break;
             case PARTICLE:
 
                 renderParticleWaveform(points, x, y, width, height, alpha);
@@ -78,7 +82,7 @@ public class Waveforms {
                 if (drawBackground) {
                     drawBackground(x, y, width, height, alpha);
                 }
-                renderWaveform(points, x, y, width, height, alpha);
+                renderOscilloscopeWaveform(points, x, y, width, height, alpha);
         }
     }
 
@@ -87,7 +91,7 @@ public class Waveforms {
         Tessellator tessellator = Tessellator.instance;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         tessellator.startDrawingQuads();
-        tessellator.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F);
+        tessellator.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F * alpha);
         tessellator.addVertex(x - 1, y - 1, 0.0);
         tessellator.addVertex(x - 1, y + height + 1, 0.0);
         tessellator.addVertex(x + width + 1, y + height + 1, 0.0);
@@ -167,7 +171,7 @@ public class Waveforms {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
-    private static void renderWaveform(int[] points, float x, float y, float width, float height, float alpha) {
+    private static void renderOscilloscopeWaveform(int[] points, float x, float y, float width, float height, float alpha) {
         int n = points.length;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glLineWidth(2.0f); // Make the line a bit thicker
@@ -246,49 +250,6 @@ public class Waveforms {
         }
 
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-    }
-
-
-    private static void renderOscilloscopeWaveform(int[] points, float x, float y, float width, float height, float alpha) {
-        int n = points.length;
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-
-        // Draw grid
-        GL11.glLineWidth(1.0f);
-        GL11.glColor4f(0.2f, 0.2f, 0.2f, alpha * 0.5f);
-
-        // Vertical grid lines
-        for (int i = 0; i <= 10; i++) {
-            float gx = x + (width * i / 10);
-            GL11.glBegin(GL11.GL_LINES);
-            GL11.glVertex2f(gx, y);
-            GL11.glVertex2f(gx, y + height);
-            GL11.glEnd();
-        }
-
-        // Horizontal grid lines
-        for (int i = 0; i <= 4; i++) {
-            float gy = y + (height * i / 4);
-            GL11.glBegin(GL11.GL_LINES);
-            GL11.glVertex2f(x, gy);
-            GL11.glVertex2f(x + width, gy);
-            GL11.glEnd();
-        }
-
-        // Draw waveform
-        GL11.glLineWidth(2.0f);
-        GL11.glBegin(GL11.GL_LINE_STRIP);
-        GL11.glColor4f(0.0f, 1.0f, 0.0f, alpha);
-
-        for (int i = 0; i < n; i++) {
-            float px = x + (i * width) / (n - 1);
-            float amplitude = points[i] / 32768.0f;
-            float py = y + height/2 + amplitude * height/2;
-            GL11.glVertex2f(px, py);
-        }
-
-        GL11.glEnd();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 

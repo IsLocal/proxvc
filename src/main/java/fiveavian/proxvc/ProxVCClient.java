@@ -5,7 +5,6 @@ import fiveavian.proxvc.gui.HudComponentStatus;
 import fiveavian.proxvc.gui.HudComponentWaveForm;
 import fiveavian.proxvc.gui.MicrophoneListComponent;
 import fiveavian.proxvc.gui.VolumeMixerComponent;
-import fiveavian.proxvc.util.EnvironmentDescriptor;
 import fiveavian.proxvc.util.MixerStore;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.util.Waveforms;
@@ -24,16 +23,12 @@ import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.input.InputDevice;
 import net.minecraft.client.option.*;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.texture.Texture;
 import net.minecraft.core.block.Blocks;
 import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.Player;
-import net.minecraft.core.item.Item;
 import net.minecraft.core.item.Items;
 import net.minecraft.core.net.packet.PacketLogin;
 import net.minecraft.core.util.phys.Vec3;
-import org.apache.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.openal.AL10;
 
@@ -47,10 +42,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/*
-#TODO Fix bug with output logic.
-*/
-
 public class ProxVCClient implements ClientModInitializer {
     public static ProxVCClient instance;
     public Minecraft client;
@@ -60,7 +51,6 @@ public class ProxVCClient implements ClientModInitializer {
     public SocketAddress serverAddress;
     private Thread inputThread;
     private Thread outputThread;
-    public Texture statusIconTexture;
 
     public final KeyBinding keyMute = new KeyBinding("key.mute").setDefault(InputDevice.keyboard, Keyboard.KEY_M);
     private boolean isMutePressed = false;
@@ -83,8 +73,6 @@ public class ProxVCClient implements ClientModInitializer {
     public Path optionFilePath;
     private boolean attenuationProfileChanged = false;
 
-    public EnvironmentDescriptor descriptor;
-
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
     }
@@ -94,7 +82,6 @@ public class ProxVCClient implements ClientModInitializer {
         ClientEvents.START.add(this::start);
         ClientEvents.STOP.add(this::stop);
         ClientEvents.TICK.add(this::tick);
-        ClientEvents.RENDER.add(this::render);
         ClientEvents.LOGIN.add(this::login);
         ClientEvents.DISCONNECT.add(this::disconnect);
     }
@@ -107,7 +94,7 @@ public class ProxVCClient implements ClientModInitializer {
         usePushToTalk = new OptionBoolean(client.gameSettings, "use_push_to_talk", false);
         showWaveform = new OptionBoolean(client.gameSettings, "show_waveform", true);
         showMicStatus = new OptionBoolean(client.gameSettings, "show_mic_status", true);
-        selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", null);
+        selectedInputDevice = new OptionString(client.gameSettings, "selected_input_device", "");
         muffleIntensity = new OptionFloat(client.gameSettings, "muffle_intensity", 1f);
         attenuationProfile = new OptionEnum<>(client.gameSettings, "attenuation_profile", AttenuationProfile.class, AttenuationProfile.VOICE_CLARITY);
         attenuationProfile.addCallback(value -> {
@@ -119,6 +106,9 @@ public class ProxVCClient implements ClientModInitializer {
         options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice, muffleIntensity, showWaveform, showMicStatus, attenuationProfile,waveformType};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
+        if (selectedInputDevice.value == null) {
+            selectedInputDevice.value = "";
+        }
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
         try {
             socket = new DatagramSocket();
@@ -164,7 +154,6 @@ public class ProxVCClient implements ClientModInitializer {
 
             device.open(selectedInputDevice.value);
             MixerStore.load();
-            descriptor = new EnvironmentDescriptor(client, sources);
             System.out.println("ProxVC successfully started.");
         } catch (SocketException ex) {
             System.out.println("Failed to start the ProxVC client because of an exception.");
@@ -246,7 +235,7 @@ public class ProxVCClient implements ClientModInitializer {
 
             Vec3 headPos = ((Player) entity).getPosition(client.timer.partialTicks, true);
             Vec3 look = entity.getLookAngle();
-            AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
+            AL10.alSource3f(source.source, AL10.AL_POSITION, (float) headPos.x, (float) headPos.y, (float) headPos.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.x, (float) look.y, (float) look.z);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
             //AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value * source.volume );
@@ -257,11 +246,6 @@ public class ProxVCClient implements ClientModInitializer {
         if (attenuationProfileChanged) {
             attenuationProfileChanged = false;
         }
-    }
-
-    private void render(Minecraft client, WorldRenderer renderer) {
-
-
     }
 
     private void login(Minecraft client, PacketLogin packet) {

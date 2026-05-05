@@ -61,6 +61,7 @@ public class EnvironmentDescriptor {
             trace(pos, normalizedDir, 50, 0);
         }
         System.out.println("Bounced back rays: " + bouncedBackRays
+            + " Escaped rays: " + escapedRays
             + "Avg distance: " + totalDistance / (bouncedBackRays)
         );
 

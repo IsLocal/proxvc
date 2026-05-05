@@ -44,7 +44,7 @@ public class MicrophoneListComponent implements OptionsComponent {
 
     private void updateSpecifiers() {
         specifiers = AudioInputDevice.getSpecifiers();
-        if (specifierOption.value == null)
+        if (isNoSpecifierSelected())
             return;
         for (String specifier : specifiers) {
             if (Objects.equals(specifier, specifierOption.value))
@@ -55,8 +55,12 @@ public class MicrophoneListComponent implements OptionsComponent {
     }
 
     private void selectSpecifier(String specifier) {
-        specifierOption.value = specifier;
+        specifierOption.value = specifier == null ? "" : specifier;
         device.open(specifier);
+    }
+
+    private boolean isNoSpecifierSelected() {
+        return specifierOption.value == null || specifierOption.value.isEmpty();
     }
 
     @Override

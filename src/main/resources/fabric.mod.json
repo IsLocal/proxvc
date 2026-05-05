@@ -23,7 +23,7 @@
   "mixins": [
     "proxvc.mixins.json"
   ],
-  "accessWidener": "proxvc.classtweaker",
+  "accessWidener": "proxvc.accessWidener",
   "depends": {
 
     "minecraft": "~7.3",

@@ -9,7 +9,6 @@ import net.minecraft.client.gui.hud.component.layout.Layout;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.OptionBoolean;
 import net.minecraft.client.render.tessellator.Tessellator;
-import net.minecraft.client.render.texture.Texture;
 import org.lwjgl.opengl.GL11;
 
 public class HudComponentStatus extends HudComponentMovable {

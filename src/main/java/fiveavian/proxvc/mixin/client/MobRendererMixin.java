@@ -23,7 +23,7 @@ public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
         if (ProxVCClient.instance.waveformType.value == Waveforms.types.OFF) return;
         if (!(entity instanceof Player)) return;
 
-        float f = (float) ((EntityRenderer<?>) (Object) this).renderDispatcher.camera.distanceTo(entity);
+        float f = (float) this.renderDispatcher.camera.distanceTo(entity);
         if (f > (float) maxDistance) return;
 
         StreamingAudioSource source = ProxVCClient.instance.sources.get(entity.id);
@@ -33,8 +33,8 @@ public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
         GL11.glPushMatrix();
         GL11.glTranslatef((float) d + 0.0F, (float) d1 + entity.getHeadHeight() + 0.8F, (float) d2);
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(-((EntityRenderer) (Object) this).renderDispatcher.viewLerpYaw, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(((EntityRenderer) (Object) this).renderDispatcher.viewLerpPitch, 1.0F, 0.0F, 0.0F);
+        GL11.glRotatef(-this.renderDispatcher.viewLerpYaw, 0.0F, 1.0F, 0.0F);
+        GL11.glRotatef(this.renderDispatcher.viewLerpPitch, 1.0F, 0.0F, 0.0F);
         GL11.glScalef(-0.026666671F, -0.026666671F, 0.026666671F);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDepthMask(false);
@@ -79,7 +79,6 @@ public abstract class MobRendererMixin<T extends Mob> extends EntityRenderer<T>{
 
 
 }
-
 
 
 

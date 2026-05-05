@@ -15,7 +15,7 @@ group = modGroup.get()
 version = modVersion.get()
 loom {
     customMinecraftMetadata.set("https://downloads.betterthanadventure.net/bta-client/${libs.versions.btaChannel.get()}/v${libs.versions.bta.get()}/manifest.json")
-    accessWidenerPath = file("src/main/resources/proxvc.classtweaker")
+    accessWidenerPath = file("src/main/resources/proxvc.accessWidener")
 }
 repositories {
     mavenCentral()
@@ -44,15 +44,21 @@ lwjgl {
     version = libs.versions.lwjgl
     implementation(Preset.MINIMAL_OPENGL)
 }
+val lwjglVersion = libs.versions.lwjgl.get()
 dependencies {
     minecraft("::${libs.versions.bta.get()}")
 
     runtimeOnly(libs.clientJar)
     implementation(libs.loader)
-    // If you do not need Halplibe you can comment out or delete this line.
     implementation(libs.halplibe)
     implementation(libs.modMenu)
     implementation(libs.legacyLwjgl)
+
+    runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:natives-macos-arm64")
+    runtimeOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-macos-arm64")
+    runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-macos-arm64")
+    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion:natives-macos-arm64")
+    runtimeOnly("org.lwjgl:lwjgl-stb:$lwjglVersion:natives-macos-arm64")
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -61,9 +67,7 @@ dependencies {
     implementation(libs.log4j.api)
     implementation(libs.log4j.api12)
     implementation(libs.gson)
-
     implementation(libs.commonsLang3)
-    include(libs.commonsLang3)
 }
 java {
     toolchain {
@@ -112,6 +116,13 @@ tasks {
                 rename { original -> "${original}_${archiveBaseName.get()}" }
             }
         }
+    }
+//    MacOS development requirement
+    withType<JavaExec>().configureEach {
+        jvmArgs(
+            "-XstartOnFirstThread",
+            "-Djava.awt.headless=true"
+        )
     }
     processResources {
         val resourceMap = mapOf(

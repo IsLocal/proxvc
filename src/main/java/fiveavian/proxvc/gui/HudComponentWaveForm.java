@@ -42,7 +42,7 @@ public class HudComponentWaveForm extends HudComponentMovable {
         //hud.drawRect(x, y, x + 100, y + 15, 0x80000000);
 
         drawBackground(x, y, x + 100, y + 15);
-        Waveforms.renderWaveformStyle(Waveforms.types.BASIC, device.points,
+        Waveforms.renderWaveformStyle(null, device.points,
                 x + 2, y, 96, 13, 1f, false, null);
         //renderWaveform(device.points != null ? device.points : blankPoints, x+2,y, 96, 15);
     }
@@ -55,7 +55,7 @@ public class HudComponentWaveForm extends HudComponentMovable {
         gui.drawRect(x, y, x + 100, y + 15, 0x80000000);
 
         //drawBackground(x, y, x + 90, y + 15);
-        Waveforms.renderWaveformStyle(Waveforms.types.BASIC, null,
+        Waveforms.renderWaveformStyle(null, null,
                 x + 2, y, 96, 13, 1f, false, null);
     }
 
